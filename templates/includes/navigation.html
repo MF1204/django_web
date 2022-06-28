@@ -1,0 +1,250 @@
+{% load static %}
+{% load extras %}
+{% block stylesheets %}
+    <style>
+        .active {
+            background-color: gray;
+            border-radius: 5px;
+        }
+        .active span {
+            color: white;
+        }
+        @media (min-width: 1200px) {
+            .navbar-vertical.navbar-expand-xl {
+                max-width: 18rem;
+                top: 0;
+                height: 100vh;
+                margin: 0;
+            }
+        }
+        @media (min-width: 1200px) {
+            .navbar-vertical.navbar-expand-xl .navbar-collapse {
+                margin-top: -0.3125rem;
+                -webkit-transition: width .2s ease;
+                -o-transition: width .2s ease;
+                transition: width .2s ease;
+                -webkit-transition-property: width,-webkit-box-shadow;
+                transition-property: width,-webkit-box-shadow;
+                -o-transition-property: width,box-shadow;
+                transition-property: width,box-shadow;
+                transition-property: width,box-shadow,-webkit-box-shadow;
+                display: inline-block !important;
+                width: 18rem;
+            }
+        }
+        @media (min-width: 1200px) {
+            .navbar-vertical.navbar-expand-xl .navbar-vertical-content {
+                width: 16rem;
+                height: calc(100vh - 4.3125rem);
+                padding: 0.5rem 0 0 0;
+            }
+        }
+        .navbar-vertical .navbar-nav .nav-item .nav-link:hover, .navbar-vertical .navbar-nav .nav-item .nav-link:focus {
+            color: var(--falcon-navbar-vertical-link-hover-color);
+            background-color: rgba(192, 192, 192, 0.5);
+        }
+        .navbar-vertical .navbar-nav .nav {
+            font-size: 1.0rem;
+            font-weight: normal;
+        }
+        .navbar-vertical .toggle-icon-wrapper {
+            margin-left: -0.75rem;
+            padding-left: 0.125rem;
+            margin-right: 0;
+        }
+    </style>
+{% endblock stylesheets %}
+<nav class="navbar navbar-light navbar-vertical navbar-expand-xl">
+    <div class="d-flex align-items-center">
+        <a class="navbar-brand" href="/">
+            <div class="d-flex align-items-center py-3">
+                <img
+                        class="me-2"
+                        src="{% static 'assets/img/aibiz.png' %}"
+                        alt=""
+                        width="40"
+                /><span class="font-sans-serif">aibiz</span>
+            </div>
+        </a>
+        <div id="navBtn-div" class="toggle-icon-wrapper" style="margin-left: 100px;">
+            <button
+                    id="navBtn"
+                    class="btn navbar-toggler-humburger-icon navbar-vertical-toggle"
+                    data-bs-toggle="tooltip"
+                    data-bs-placement="left"
+                    data-posi="left"
+                    title="Toggle Navigation"
+                    onclick="toggleArrow(this.dataset.posi);">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevrons-left text-900 fs-3"><polyline points="11 17 6 12 11 7"></polyline><polyline points="18 17 13 12 18 7"></polyline></svg>
+            </button>
+        </div>
+    </div>
+    <div class="collapse navbar-collapse" id="navbarVerticalCollapse">
+        <div class="navbar-vertical-content scrollbar">
+            <ul class="navbar-nav flex-column mb-3" id="navbarVerticalNav" style="font-size: 1.0rem; font-weight: bold;">
+                <li class="nav-item">
+                    <a class="nav-link dropdown-indicator"
+                       href="#dashboard"
+                       role="button"
+                       data-bs-toggle="collapse"
+                       aria-expanded="false"
+                       aria-controls="dashboard">
+                        <div class="d-flex align-items-center">
+                            <span class="nav-link-icon">
+                                <span class="fas fa-chart-bar"></span>
+                            </span>
+                            <span class="nav-link-text ps-1">제품 이상 예측</span>
+                        </div>
+                    </a>
+                    {% if request.path|path:'/' == 'anomaly' %}
+                        <ul class="nav collapse show" id="dashboard">
+                    {% else %}
+                        <ul class="nav collapse" id="dashboard">
+                    {% endif %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'anomaly:datasetup' %}">
+                                <div class="d-flex align-items-center">
+                                    <span class="nav-link-text ps-1">데이터셋업</span>
+                                </div>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'anomaly:training' %}">
+                                <div class="d-flex align-items-center">
+                                    <span class="nav-link-text ps-1">학습</span>
+                                </div>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'anomaly:monitoring' %}">
+                                <div class="d-flex align-items-center">
+                                    <span class="nav-link-text ps-1">모니터링</span>
+                                </div>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'anomaly:analysis' %}">
+                                <div class="d-flex align-items-center">
+                                    <span class="nav-link-text ps-1">분석</span>
+                                </div>
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link dropdown-indicator"
+                       href="#wafer"
+                       role="button"
+                       data-bs-toggle="collapse"
+                       aria-expanded="false"
+                       aria-controls="wafer">
+                        <div class="d-flex align-items-center">
+                        <span class="nav-link-icon">
+                            <span class="fab fa-gg-circle"></span>
+                        </span>
+                            <span class="nav-link-text ps-1">장비 상태 모니터링</span>
+                        </div>
+                    </a>
+                    {% if request.path|path:'/' == 'condition' %}
+                        <ul class="nav collapse show" id="wafer">
+                    {% else %}
+                        <ul class="nav collapse" id="wafer">
+                    {% endif %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="/problem">
+                                <div class="d-flex align-items-center">
+                                    <span class="nav-link-text ps-1">준비중</span>
+                                </div>
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+                <li class="nav-item">
+                    <a
+                            class="nav-link dropdown-indicator"
+                            href="#tool"
+                            role="button"
+                            data-bs-toggle="collapse"
+                            aria-expanded="false"
+                            aria-controls="tool">
+                        <div class="d-flex align-items-center">
+                        <span class="nav-link-icon">
+                            <span class="fas fa-tools"></span>
+                        </span>
+                            <span class="nav-link-text ps-1">장비 차이 모니터링</span>
+                        </div>
+                    </a>
+                    {% if request.path|path:'/' == 'discrepancy' %}
+                        <ul class="nav collapse show" id="tool">
+                    {% else %}
+                        <ul class="nav collapse" id="tool">
+                    {% endif %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="/problem">
+                                <div class="d-flex align-items-center">
+                                    <span class="nav-link-text ps-1">준비중</span>
+                                </div>
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link dropdown-indicator"
+                       href="#vision"
+                       role="button"
+                       data-bs-toggle="collapse"
+                       aria-expanded="false"
+                       aria-controls="vision">
+                        <div class="d-flex align-items-center">
+                        <span class="nav-link-icon">
+                            <span class="fas fa-chart-pie"></span>
+                        </span>
+                            <span class="nav-link-text ps-1">머신비전</span>
+                        </div>
+                    </a>
+                    {% if request.path|path:'/' == 'vision' %}
+                        <ul class="nav collapse show" id="vision">
+                    {% else %}
+                        <ul class="nav collapse" id="vision">
+                    {% endif %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="/problem">
+                                <div class="d-flex align-items-center">
+                                    <span class="nav-link-text ps-1">준비중</span>
+                                </div>
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link dropdown-indicator"
+                       href="#tracking"
+                       role="button"
+                       data-bs-toggle="collapse"
+                       aria-expanded="false"
+                       aria-controls="tracking">
+                        <div class="d-flex align-items-center">
+                        <span class="nav-link-icon">
+                            <span class="fas fa-code-branch"></span>
+                        </span>
+                            <span class="nav-link-text ps-1">이상 추적 솔루션</span>
+                        </div>
+                    </a>
+                    {% if request.path|path:'/' == 'tracking' %}
+                        <ul class="nav collapse show" id="tracking">
+                    {% else %}
+                        <ul class="nav collapse" id="tracking">
+                    {% endif %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="/problem">
+                                <div class="d-flex align-items-center">
+                                    <span class="nav-link-text ps-1">준비중</span>
+                                </div>
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>

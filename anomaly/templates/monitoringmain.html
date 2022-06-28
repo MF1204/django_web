@@ -1,0 +1,648 @@
+{% extends 'layouts/base.html' %}
+{% load static %}
+{% block title%}
+    Monitoring
+{% endblock %}
+<!-- Specific Page CSS goes HERE  -->
+{% block stylesheets %}
+    <link
+            rel="stylesheet"
+            href="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.2.1/themes/default/style.min.css"
+    />
+    <link rel="stylesheet" href="{% static 'assets/css/user.css' %}" />
+{% endblock stylesheets %}
+{% block content %}
+
+    <main class="main" id="top">
+        <div class="container">
+            <div class="row g-3 mb-3">
+                <div class="col-lg-12">
+                    <div class="card h-100">
+                        <div class="card-header d-flex flex-between-center bg-light py-3">
+                            <h6 class="mb-0">Monitoring</h6>
+                        </div>
+                        <div class="card-header d-flex flex-between-center bg-light py-3">
+                            <div class="row">
+                                <div class="form-control col ms-4 mb-1 select-box">
+                                    <select id="equip_select" onchange="find_Chamber(this);">
+                                        <option value="">장비</option>
+                                        {% if equip_select %} {% for i in equip_select %}
+                                            <option value="{{ i.equip_name }}">{{ i.equip_name }}</option>
+                                        {% endfor %} {% endif %}
+                                    </select>
+                                </div>
+                                <div class="form-control col mb-1 select-box">
+                                    <select id="chamber_select" onchange="find_Recipe(this);">
+                                        <option value="">챔버</option>
+                                    </select>
+                                </div>
+
+                                <div class="form-control col mb-1 select-box">
+                                    <select id="recipe_select" onchange="find_Revision(this);">
+                                        <option value="">레시피</option>
+                                    </select>
+                                </div>
+                                <div class="form-control col mb-1 select-box">
+                                    <select id="revision_select" onchange="find_Sensor(this);">
+                                        <option value="">리비전</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-body pb-1 tree-content">
+                            <ul style="padding: 0" id="sensor_list"></ul>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-12">
+                    <div class="card mb-3">
+                        <div class="card-body py-5 py-sm-3">
+                            <div class="row g-5 g-sm-0">
+                                <div class="col-sm-4">
+                                    <div class="border-sm-end border-300">
+                                        <div class="text-center">
+                                            <h6 class="text-700">Status</h6>
+                                        </div>
+                                        <button id="status-btn" type="button"></button>
+                                        <h6
+                                                class="text-center"
+                                                style="font-weight: 400; color: #2c7be5"
+                                        >
+                                            Bad or Good
+                                        </h6>
+                                    </div>
+                                </div>
+                                <div class="col-sm-8">
+                                    <div>
+                                        <div class="text-center">
+                                            <h6 class="text-700">Upload</h6>
+                                        </div>
+                                        <form
+                                                id="UploadForm"
+                                                method="post"
+                                                action="/monitoring/upload"
+                                        >
+                                            <div class="row upload">
+                                                <div class="col-sm-8 choose-file">
+                                                    <input
+                                                            class="form-control"
+                                                            id="file"
+                                                            name="file"
+                                                            type="file"
+                                                            multiple="multiple"
+                                                    />
+                                                </div>
+                                                <div class="col">
+                                                    <button
+                                                            class="btn btn-falcon-default btn-sm mt-2"
+                                                            type="button"
+                                                            onclick="monitoring_Upload()"
+                                                    >
+                                                        등록
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-header d-flex flex-between-center bg-light py-3">
+                            <h6 class="mb-0">Graph</h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="row-cols-md-1">
+                            </div>
+                            <div style="display: flex; float: right">
+                                <label id="file_name"></label>
+                                <button class="btn-falcon-default" id="leftBtn"><</button>
+                                <button class="btn-falcon-default" id="rightBtn">></button>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <canvas id="monitorCanvas"></canvas>
+                        </div>
+                        <!-- <div class="card-footer bg-light py-2">
+                                        <div class="row flex-between-center g-0">
+                                          <div class="col-auto">
+                                            <select class="form-select form-select-sm audience-select-menu">
+                                              <option value="week" selected="selected">Last 7 days</option>
+                                              <option value="month">Last month</option>
+                                              <option value="year">Last Year</option>
+                                            </select>
+                                          </div>
+                                          <div class="col-auto">
+                                            <h6 class="mb-0"><a class="py-2" href="#!">Active users report<span class="fas fa-chevron-right ms-1 fs--2"></span></a></h6>
+                                          </div>
+                                        </div>
+                                      </div> -->
+                    </div>
+                </div>
+                <div class="col-lg">
+                    <div class="card h-100">
+                        <div class="card-header d-flex flex-between-center bg-light py-3">
+                            <h6 class="mb-0">Warning List</h6>
+                        </div>
+                        <div class="card-body pb-3" style="margin: 0 2em 0 2em">
+                            <div
+                                    class="row text-center border-sm-bottom pb-2"
+                                    style="font-weight: 700"
+                            >
+                                <div class="col">Date</div>
+                                <div class="col">제품명</div>
+                            </div>
+                            <table
+                                    id="anomalies_list"
+                                    style="width: 100%; margin-top: 1em"
+                            ></table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!----------------------------------- Modal -------------------------------->
+            <div class="modal fade" id="viewWarning" tabindex="-1" aria-labelledby="viewWarningLabel" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="viewWarningLabel">Select Warning List</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div>
+                                <label id="file_name_popup"></label>
+                                <canvas id="modalpopupCanvas"></canvas>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" id="footer-btn">확인</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {#            end modal             #}
+        </div>
+    </main>
+{% endblock %}
+
+<!-- Specific Page JS goes HERE  -->
+{% block javascripts %}
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.2.1/jstree.min.js"></script>
+    <script src="{% static 'vendors/list.js/list.min.js' %}"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        //Monitoring 실시간 화면갱신
+        var timer;
+
+        $(document).ready(function () {
+            execute_Monitoring();
+            setTimeout(function exec() {
+                drawChart();
+            }, 100);
+        });
+
+        //페이지 이동시 작동중인 watchdog thread 종료...
+        $(window).on("beforeunload", function () {
+            stop_Thread();
+        });
+
+        function stop_Thread() {
+            var url = "/user/stop_thread";
+
+            $.ajax({
+                type: "GET",
+                url: url,
+                headers: { "X-CSRFToken": getCookie("csrftoken") },
+                //data : formData,
+                cache: false,
+                contentType: false,
+                processData: false,
+                error: function (request, status, error) {},
+                success: function (result) {},
+            });
+        }
+    </script>
+    <script>
+        var monitorCanvas = document.getElementById("monitorCanvas").getContext("2d");
+        var sensorLabel = document.getElementById("sensorId");
+        var leftBtn = document.getElementById("leftBtn");
+        leftBtn.addEventListener("click", leftBtnClick);
+
+        var rightBtn = document.getElementById("rightBtn");
+        rightBtn.addEventListener("click", rightBtnClick);
+
+        var monitorChart = new Chart();
+        var popupChart;
+
+        var csvList = [];
+        var csvIndex = 0;
+        var dataList = [];
+        var xAxis = [];
+
+        var graph_Flag = false;
+
+        //파일 리스트 호출 함수
+        function execute_Monitoring() {
+            var url = "/user/execute";
+
+            $.ajax({
+                type: "GET",
+                url: url,
+                headers: { "X-CSRFToken": getCookie("csrftoken") },
+                //data : formData,
+                cache: false,
+                contentType: false,
+                processData: false,
+                error: function (request, status, error) {
+                    //alert("code:"+request.status+"\n"+"error:"+error);
+                },
+                success: function (result) {
+                    var list = "";
+
+                    var file_Name;
+                    var date = "";
+                    var lot_No = "";
+
+                    $("#anomalies_list").empty();
+                    //파일 리스트를 날짜와 Lot 순서로 변경하여 출력
+                    $.each(result.anomalies_list, function (i, item) {
+                        //alert(i);
+                        file_Name = item.replace(".csv", "").split("_");
+                        //일자
+                        date = file_Name[0] + "/" + file_Name[1] + "/" + file_Name[2];
+                        //Lot No
+                        lot_No = file_Name[3] + "_" + file_Name[4];
+
+                        //실제 테이블에 리스팅
+                        list += "<tr>";
+                        list += "   <td>" + date + "</td>";
+                        list += "   <td><button class='btn col btn-falcon-default btn-sm' data-bs-toggle='modal' data-bs-target='#viewWarning' onclick='popup_Warning(" + i + ");'>"
+                              + lot_No + "</button></td>";
+                        list +=
+                            "   <input type='hidden' id='seq_" + i + "' value='" + i + "'>";
+                        list +=
+                            "   <input type='hidden' id='file_" +
+                            item +
+                            "' value='" +
+                            item +
+                            "'>";
+                        list += "</tr>";
+                    });
+
+                    $("#anomalies_list").append(list);
+
+                    csvList = result.csv_list.map((value) => value[0]);
+
+                    dataList = result.csv_list.map((value) => value[1]);
+
+                    xAxis = dataList[0][0].map((_, index) => index + 1);
+                },
+            });
+
+            drawChart();
+
+            //5초 간격으로 하여 디렉토리 파일 리스트 호출 및 csv data 호출(간격 조정 필요한경우 수치 데이터 조정)
+            timer = setTimeout("execute_Monitoring()", 5000);
+
+            if(!graph_Flag){
+                //재조회 진행시에 가장 최신의 데이터를 우선으로 차트 부분에 표기한다..
+                setTimeout(function exec() {
+                    csvIndex = 0;
+
+                    monitorChart.data.datasets[0].data = dataList[csvIndex][0];
+                    monitorChart.data.datasets[1].data = dataList[csvIndex][1];
+                    monitorChart.destroy();
+                    drawChart();
+                }, 300);
+            }
+        }
+
+        function drawChart() {
+            monitorChart = new Chart(monitorCanvas, {
+                type: "line",
+                data: {
+                    labels: xAxis,
+                    datasets: [
+                        {
+                            label: "test data",
+                            type: "line",
+                            fill: false,
+                            lineTension: 0,
+                            pointRadius: 0,
+                            borderColor: "blue",
+                            borderWidth: 1,
+                            data: dataList[csvIndex][0],
+                        },
+                        {
+                            label: "test predicted",
+                            type: "line",
+                            fill: false,
+                            lineTension: 0,
+                            pointRadius: 0,
+                            borderColor: "red",
+                            borderWidth: 1,
+                            data: dataList[csvIndex][1],
+                        },
+                    ],
+                },
+                options: {
+                    scales: {
+                        y: {
+                            title: {
+                                display: true,
+                                text: 'Sensor Value'
+                            },
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Time'
+                            },
+                        },
+                    },
+                },
+            });
+
+            //해당 차트의 파일명 표기
+            document.getElementById('file_name').innerText = csvList[csvIndex];
+        }
+
+        function leftBtnClick() {
+            if (csvIndex <= 0) return;
+            console.log(csvIndex);
+
+            csvIndex--;
+
+            graph_Flag = true;
+
+            if (csvIndex === 0) graph_Flag = false;
+
+            //해당 차트의 파일명 표기
+            document.getElementById('file_name').innerText = csvList[csvIndex];
+            monitorChart.data.datasets[0].data = dataList[csvIndex][0];
+            monitorChart.data.datasets[1].data = dataList[csvIndex][1];
+            monitorChart.destroy();
+            drawChart();
+        }
+
+        function rightBtnClick() {
+            if (csvIndex >= dataList.length - 1) return;
+            console.log(csvIndex);
+
+            csvIndex++;
+
+            graph_Flag = true;
+
+            if (csvIndex === 0) graph_Flag = false;
+
+            //해당 차트의 파일명 표기
+            document.getElementById('file_name').innerText = csvList[csvIndex];
+            monitorChart.data.datasets[0].data = dataList[csvIndex][0];
+            monitorChart.data.datasets[1].data = dataList[csvIndex][1];
+            monitorChart.destroy();
+            drawChart();
+        }
+
+        function find_Chamber(object) {
+            var equip_Name = object.value;
+
+            var url = "/user/find_chamber";
+
+            $.ajax({
+                type: "POST",
+                url: url,
+                headers: { "X-CSRFToken": getCookie("csrftoken") },
+                dataType: "json",
+                contentType: "application/json; charset=utf-8",
+                data: JSON.stringify({ equip_name: equip_Name }),
+                cache: false,
+                processData: false,
+                error: function (request, status, error) {
+                    //alert("code:"+request.status+"\n"+"error:"+error);
+                },
+                success: function (result) {
+                    $("#chamber_select").empty();
+                    $("#recipe_select").empty();
+                    $("#revision_select").empty();
+                    $("#chamber_select").append('<option value=""></option>');
+
+                    $.each(result.chamber_list, function (i, item) {
+                        $("#chamber_select").append(
+                            '<option value="' + item + '">' + item + "</option>"
+                        );
+                    });
+                },
+            });
+        }
+
+        function find_Recipe(object) {
+            var chamber_Name = object.value;
+
+            var url = "/user/find_recipe";
+
+            $.ajax({
+                type: "POST",
+                url: url,
+                headers: { "X-CSRFToken": getCookie("csrftoken") },
+                dataType: "json",
+                contentType: "application/json; charset=utf-8",
+                data: JSON.stringify({ chamber_name: chamber_Name }),
+                cache: false,
+                processData: false,
+                error: function (request, status, error) {
+                    //alert("code:"+request.status+"\n"+"error:"+error);
+                },
+                success: function (result) {
+                    $("#recipe_select").empty();
+                    $("#revision_select").empty();
+                    $("#recipe_select").append('<option value=""></option>');
+
+                    $.each(result.recipe_list, function (i, item) {
+                        $("#recipe_select").append(
+                            '<option value="' + item + '">' + item + "</option>"
+                        );
+                    });
+                },
+            });
+        }
+
+        function find_Revision(object) {
+            var recipe_Name = object.value;
+
+            var url = "/user/find_revision";
+
+            $.ajax({
+                type: "POST",
+                url: url,
+                headers: { "X-CSRFToken": getCookie("csrftoken") },
+                dataType: "json",
+                contentType: "application/json; charset=utf-8",
+                data: JSON.stringify({ recipe_name: recipe_Name }),
+                cache: false,
+                processData: false,
+                error: function (request, status, error) {
+                    //alert("code:"+request.status+"\n"+"error:"+error);
+                },
+                success: function (result) {
+                    $("#revision_select").empty();
+                    $("#revision_select").append('<option value=""></option>');
+
+                    $.each(result.revision_list, function (i, item) {
+                        $("#revision_select").append(
+                            '<option value="' + item + '">' + item + "</option>"
+                        );
+                    });
+                },
+            });
+        }
+
+        function find_Sensor() {
+            var equip_Name = document.getElementById("equip_select").value;
+            var chamber_Name = document.getElementById("chamber_select").value;
+            var recipe_Name = document.getElementById("recipe_select").value;
+            var revision_No = document.getElementById("revision_select").value;
+
+            var url = "/user/find_sensor";
+
+            $.ajax({
+                type: "POST",
+                url: url,
+                headers: { "X-CSRFToken": getCookie("csrftoken") },
+                dataType: "json",
+                contentType: "application/json; charset=utf-8",
+                data: JSON.stringify({
+                    equip_name: equip_Name,
+                    chamber_name: chamber_Name,
+                    recipe_name: recipe_Name,
+                    revision_no: revision_No,
+                }),
+                cache: false,
+                processData: false,
+                error: function (request, status, error) {
+                    //alert("code:"+request.status+"\n"+"error:"+error);
+                },
+                success: function (result) {
+                    $("#sensor_list").empty();
+
+                    $.each(result.sensor_list, function (i, item) {
+                        $("#sensor_list").append(
+                            '<button class="senser-btn" id="' +
+                            item.sensor_cd +
+                            '" type="button" onclick="run_Monitoring(this);">' +
+                            item.sensor_name +
+                            "</button>"
+                        );
+                    });
+                },
+            });
+        }
+
+        function run_Monitoring(object) {
+            var equip_Name = document.getElementById("equip_select").value;
+            var chamber_Name = document.getElementById("chamber_select").value;
+            var recipe_Name = document.getElementById("recipe_select").value;
+            var sensor_Cd = object.id;
+
+            var url = "/user/run_monitoring";
+
+            $.ajax({
+                type: "POST",
+                url: url,
+                headers: { "X-CSRFToken": getCookie("csrftoken") },
+                dataType: "json",
+                contentType: "application/json; charset=utf-8",
+                data: JSON.stringify({
+                    equip_name: equip_Name,
+                    chamber_name: chamber_Name,
+                    recipe_name: recipe_Name,
+                    sensor_cd: sensor_Cd,
+                }),
+                cache: false,
+                processData: false,
+                error: function (request, status, error) {
+                    //alert("code:"+request.status+"\n"+"error:"+error);
+                },
+                success: function (result) {
+                    if (result.success == false) {
+                        alert(result.message);
+                    }
+                },
+            });
+        }
+
+        function monitoring_Upload() {
+            var dir = "user";
+
+            var url = $("#UploadForm").attr("action");
+            var form = $("#UploadForm")[0];
+            var formData = new FormData(form);
+            formData.append("dir", dir);
+
+            $.ajax({
+                type: "POST",
+                url: url,
+                headers: { "X-CSRFToken": csrftoken },
+                data: formData,
+                cache: false,
+                contentType: false,
+                processData: false,
+                error: function (request, status, error) {
+                    alert("code:" + request.status + "\n" + "error:" + error);
+                },
+                success: function (result) {
+                    if (result.success == false) {
+                        alert(result.message);
+                    } else {
+                        alert(result.message);
+                    }
+                },
+            });
+        }
+
+        function popup_Warning(index){
+            //팝업 버튼 클릭시(파일 리스트) 해당 품목에 대한 파일명과 차트를 표기함.. (모달 폼 사용)
+            document.getElementById('file_name_popup').innerText = csvList[index];
+
+            //차트 중복 생성 에러 방지
+            if(popupChart != undefined)
+                popupChart.destroy();
+
+            drawChart_Popup(index);
+        }
+
+        function drawChart_Popup(index) {
+           popupChart = new Chart(modalpopupCanvas, {
+                type: "line",
+                data: {
+                    labels: xAxis,
+                    datasets: [
+                        {
+                            label: "test data",
+                            type: "line",
+                            fill: false,
+                            lineTension: 0,
+                            pointRadius: 0,
+                            borderColor: "blue",
+                            borderWidth: 1,
+                            data: dataList[index][0],
+                        },
+                        {
+                            label: "test predicted",
+                            type: "line",
+                            fill: false,
+                            lineTension: 0,
+                            pointRadius: 0,
+                            borderColor: "red",
+                            borderWidth: 1,
+                            data: dataList[index][1],
+                        },
+                    ],
+                },
+                options: {
+                    scales: [],
+                },
+            });
+        }
+    </script>
+{% endblock javascripts %}

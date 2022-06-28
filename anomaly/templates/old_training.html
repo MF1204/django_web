@@ -1,0 +1,770 @@
+{% extends 'layouts/base.html' %}
+{% load static %}
+{% block title %}training{% endblock %}
+<!-- Specific Page CSS goes HERE  -->
+{% block stylesheets %}
+    {{ block.super }}
+<link href="{% static '/assets/css/training.css' %}" rel="stylesheet">
+{% endblock stylesheets %}
+
+{% block content %}
+<main class="main" id="top">
+    <div class="container-fluid">
+        <!--        좌측 상단 데이터 업로드 card -->
+        <div class="row g-0">
+            <div class="col-lg-6 mb-3 pe-lg-2">
+                <div class="card">
+                    <div class="card-header row pb-0 ">
+                        <h6 class="col-6">Train data select</h6>
+                        <!-- Button trigger modal-1 -->
+                        <button type="button" class="btn col btn-falcon-default btn-sm" id="select-btn" data-bs-toggle="modal" data-bs-target="#trainDataModal">
+                            Select data
+                        </button>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-4">
+                                name:
+                            </div>
+                            <div class="col" id="name_traindata"></div>
+                        </div>
+                        <div class="row">
+                            <div class="col-3">
+                                size:
+                            </div>
+                            <div class="col" id="num_traindata" ></div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+            <div class="col-lg-6 mb-3 ps-lg-2">
+                <div class="card">
+                    <div class="card-header row pb-0">
+                        <h6 class="col-6">Test data select</h6>
+                        <!-- Button trigger modal-1 -->
+                        <button type="button" class="btn col btn-falcon-default btn-sm" id="select-btn" data-bs-toggle="modal" data-bs-target="#testDataModal">
+                            Select data
+                        </button>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-4">
+                                name:
+                            </div>
+                            <div class="col" id="name_testdata" ></div>
+                        </div>
+                        <div class="row">
+                            <div class="col-3">
+                                size:
+                            </div>
+                            <div class="col" id="num_testdata" ></div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!------------------ Modal-1 ---------------------->
+        <div class="modal fade" id="trainDataModal" tabindex="-1" aria-labelledby="trainDataModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="trainDataModalLabel">Select Traindata</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        {#                            Table in modal-1                              #}
+                        <div id="tableExample1" data-list='{"valueNames":["check","data_name","data_cnt","data_size"],"page":5,"pagination":true}'>
+                            <div class="table-responsive scrollbar">
+                                <table class="table table-bordered table-striped fs--1 mb-0">
+                                    <thead class="bg-200 text-900">
+                                    <tr>
+                                        <th class="sort data_name" data-sort="data_name">Name</th>
+                                        <th class="sort data_cnt" data-sort="data_cnt" >sample num</th>
+                                        <th class="sort data_size" data-sort="data_size">size</th>
+                                        <th data-sort="check"></th>
+                                    </tr>
+                                    </thead>
+                                    <tbody class="list">
+                                    {% if trainDataList %}
+                                    {% for i in trainDataList %}
+                                    <td class="data_name">{{ i.data_name }}</td>
+                                    <td class="data_cnt">{{ i.data_cnt }}</td>
+                                    <td class="data_size">{{ i.data_size }}</td>
+                                    <td>
+                                        <div style="display: none;">
+                                            <button type="hidden" id="m1_{{ i }}"
+                                                    onclick="selectTrainId('{{ i.id }}','{{ i.data_name }}'
+                                                                        ,'{{ i.data_cnt }}','{{ i.data_size }}', '{{ i.data_static_path }}'
+                                                                        ,'{{ i.equip_name }}', '{{ i.chamber_name }}', '{{ i.recipe_name }}', '{{ i.revision_no }}'
+                                                            )">
+
+                                            </button>
+                                        </div>
+                                        <label class="btn-falcon-info" id="is_select"  for="m1_{{ i }}">Select</label>
+                                    </td>
+                                    </tr>
+                                    {% endfor %}
+                                    {% endif %}
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="d-flex justify-content-center mt-3 mb-3">
+                                <button class="btn btn-sm btn-falcon-default me-1" type="button" title="Previous" data-list-pagination="prev">
+                                    <span class="fas fa-chevron-left"></span>
+                                </button>
+                                <ul class="pagination mb-0"></ul>
+                                <button class="btn btn-sm btn-falcon-default ms-1" type="button" title="Next" data-list-pagination="next">
+                                    <span class="fas fa-chevron-right"> </span>
+                                </button>
+                            </div>
+                        </div>
+
+                        {#                                모달 하단 card                #}
+                        <div class="card h-30 p-0" id="selected">
+                            <div class="card-body" >
+                                <div class="card-text">Selected data</div>
+                                <div class="card-text" id="selectedTrainDisp" style="font-weight: bold;"></div>
+                                <input type="hidden" id="selectedTrainHidden" value="Null">
+                                <input type="hidden" id="selectedTrainpathHidden" value="Null">
+                                <input type="hidden" id="selectedEquipNameHidden" value="Null">
+                                <input type="hidden" id="selectedChamberNameHidden" value="Null">
+                                <input type="hidden" id="selectedRecipeNameHidden" value="Null">
+                                <input type="hidden" id="selectedRevisionNoHidden" value="Null">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">확인</button>
+                        {# <button type="button" class="btn btn-primary" ">Save changes</button>#}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {#            end modal-1             #}
+
+        <!----------------------------------- Modal-2 -------------------------------->
+        <div class="modal fade" id="testDataModal" tabindex="-1" aria-labelledby="testDataModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="testDataModalLabel">Select Testdata</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        {#                            Table in modal-2                              #}
+                        <div id="tableExample2" data-list='{"valueNames":["check","data_name","data_cnt","data_size"],"page":5,"pagination":true}'>
+                            <div class="table-responsive scrollbar">
+                                <table class="table table-bordered table-striped fs--1 mb-0">
+                                    <thead class="bg-200 text-900">
+                                    <tr>
+                                        <th class="sort data_name" data-sort="data_name">Name</th>
+                                        <th class="sort data_cnt" data-sort="data_cnt">sample num</th>
+                                        <th class="sort data_size" data-sort="data_size">size</th>
+                                        <th data-sort="check"></th>
+                                    </tr>
+                                    </thead>
+                                    <tbody class="list">
+                                    {% if testDataList %}
+                                    {% for j in testDataList %}
+                                    <td class="data_name">{{ j.data_name }}</td>
+                                    <td class="data_cnt">{{ j.data_cnt }}</td>
+                                    <td class="data_size">{{ j.data_size }}</td>
+                                    <td>
+                                        <div style="display: none;">
+                                            <button type="hidden" id="m2_{{ j }}"
+                                                    onclick="selectTestId('{{ j.id }}','{{ j.data_name }}'
+                                                                        ,'{{ j.data_cnt }}','{{ j.data_size }}', '{{ j.data_static_path }}')">
+                                            </button>
+                                        </div>
+                                        <label class="btn-falcon-info" id="is_select"  for="m2_{{ j }}">Select</label>
+                                    </td>
+                                    </tr>
+                                    {% endfor %}
+                                    {% endif %}
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="d-flex justify-content-center mt-3 mb-3">
+                                <button class="btn btn-sm btn-falcon-default me-1" type="button" title="Previous" data-list-pagination="prev">
+                                    <span class="fas fa-chevron-left"></span>
+                                </button>
+                                <ul class="pagination mb-0"></ul>
+                                <button class="btn btn-sm btn-falcon-default ms-1" type="button" title="Next" data-list-pagination="next">
+                                    <span class="fas fa-chevron-right"> </span>
+                                </button>
+                            </div>
+                        </div>
+
+                        {#                                모달 하단 card                #}
+                        <div class="card h-30 p-0" id="selected" >
+                            <div class="card-body">
+                                <div class="card-text">Selected data</div>
+                                <div class="card-text" id="selectedTestDisp" style="font-weight: bold;"></div>
+                                <input type="hidden" id="selectedTestHidden" value="Null">
+                                <input type="hidden" id="selectedTestpathHidden" value="Null">
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" id="footer-btn">확인</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {#            end modal-2             #}
+
+
+        <div class="card h-100 mb-3">
+            {#                    <div class="card-header">#}
+            {#                        <h6></h6>#}
+            {#                    </div>#}
+            <div class="card-body" id="data_select" style="--falcon-gutter-x:0">
+                <div class="row mt-2">
+                    <div class="form-group mb-2 col">
+                        Sensor No.
+                        <input id="sensorNo" type="text" class="text-center input-box" value="2">
+                    </div>
+                    <div class="form-group mb-2 col">
+                        기준 Threshold
+                        <input id="thresholdStd" type="text" class="text-center input-box" value="10">
+                    </div>
+                    <div class="col trainstart-btn">
+                        <div>
+                            <button class="btn btn-primary loaded" id="trainstart-btn"
+                                    onclick="this.classList.toggle('button--loading'); this.disabled=true">
+                                <span class="button__text" >Start</span></button>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="form-group mb-2 col">
+                        현재 Threshold
+                        <input id="currentThreshold" type="text" class="text-center input-box" value="" disabled>
+                    </div>
+
+                    <div class="form-group mb-2 col">
+                        Threshold 변경
+                        <input id="adjustThreshold" type="text" class="text-center input-box" value="" >
+                    </div>
+
+                    <div class="col threshold-btn">
+                        <div>
+                            <button class="btn btn-primary" id="threshold-btn" >확인</button>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="card mb-3 h-lg-100">
+            <div class="card-header">
+                <div class="row flex-between-end">
+                    <div class="col-auto flex-lg-grow-1 flex-lg-basis-0 align-self-center">
+                        <h5 class="mb-0" data-anchor="data-anchor">Progress</h5>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body bg-light">
+                <input type="hidden" id="trainBase" value="0">
+                <input type="hidden" id="testBase" value="0">
+                <div class="progress mb-3" style="height:15px">
+                    <div
+                            id="progress_bar" class="progress-bar bg-success progress-bar-striped"
+                            role="progressbar" style="width: 0%" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100"
+                    >
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+        <div class="row g-0 h-100">
+            <div class="col-lg-6 mb-3 pe-md-2">
+                <div class="card ecommerce-card-min-wieth">
+                    <div class="card-header bg-soft-secondary text-900"><h6 class="m-1">Training Status</h6></div>
+                    <div class="card-body justify-content-end">
+                        <div>
+                            <canvas id="canvas1"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-6 mb-3 pe-md-2">
+                <div class="card ecommerce-card-min-wieth">
+                    <div class="card-header bg-soft-secondary text-900"><h6 class="m-1">Training Anomaly Score</h6></div>
+                    <div class="card-body justify-content-end">
+                        <div>
+                            <canvas id="canvas2"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-6 mb-3 pe-md-2">
+                <div class="card ecommerce-card-min-wieth">
+                    <div class="card-header bg-soft-secondary text-900">
+                        <div class="row align-items-center">
+                            <div class="col"><h6 class="m-1">Test Result</h6></div>
+                            <div class="col-auto" style="display: flex; float: right;">
+                                <label id="file_name"></label>
+                                <button class="btn-falcon-default" id="leftBtn" ><</button>
+                                <button class="btn-falcon-default" id="rightBtn">></button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body justify-content-end">
+                        <div> <canvas id="canvas3"></canvas></div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-6 mb-3 pe-md-2">
+                <div class="card ecommerce-card-min-wieth">
+                    <div class="card-header bg-soft-secondary text-900"><h6 class="m-1">Test Anomaly Score</h6></div>
+                    <div class="card-body justify-content-end">
+                        <div>
+                            <canvas id="canvas4"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col">
+            <div class="card">
+                <div class="card-header d-flex flex-between-center bg-300 py-3">
+                    <h6 class="mb-0">Warning List</h6>
+                </div>
+                <div class="card-body pb-3" style="margin: 0 2em 0 2em">
+                    <div class="row text-center border-sm-bottom pb-2" style="font-weight: 700;">
+                        <div class="col">Date</div>
+                        <div class="col">제품명</div>
+                    </div>
+                    <table id="anomalies_list" style="width:100%; margin-top:1em">
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+{% endblock %}
+
+<!-- Specific Page JS goes HERE  -->
+{% block javascripts %}
+    {{ block.super }}
+<script src="static/vendors/list.js/list.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    {#    모달관련js #}
+    {#        var myModal = document.getElementById('myModal')#}
+    {#        var myInput = document.getElementById('myInput')#}
+    {##}
+    {#        myModal.addEventListener('shown.bs.modal', function () {#}
+        {#            myInput.focus()#}
+        {#        })#}
+</script>
+<script>
+    {#    modal내 하단 selectedDisp 내용변경   #}
+    function selectTrainId(id, name, cnt, size, path, equip, chamber, recipe, revision) {
+        $('#selectedTrainDisp').text(name)
+        $('#selectedTrainHidden').val(id)
+        $('#selectedTrainpathHidden').val(path)
+        $('#selectedEquipNameHidden').val(equip)
+        $('#selectedChamberNameHidden').val(chamber)
+        $('#selectedRecipeNameHidden').val(recipe)
+        $('#selectedRevisionNoHidden').val(revision)
+        $('#name_traindata').text(name)
+        $('#num_traindata').text(cnt)
+    }
+    function selectTestId(id, name, cnt, size,path) {
+        $('#selectedTestDisp').text(name)
+        $('#selectedTestHidden').val(id)
+        $('#selectedTestpathHidden').val(path)
+        $('#name_testdata').text(name)
+        $('#num_testdata').text(cnt)
+    }
+</script>
+
+<script>
+    {#     train 시작        #}
+    const button = document.getElementById('trainstart-btn');
+
+    var progressValueNow = 0;
+    var progressBar = document.getElementById('progress_bar');
+    progressBar.style.width = '0%';
+
+    var progress;
+
+    function increaseProgress() {
+        var progressBarPercentage = Number.parseInt(progressBar.style.width.split('%')[0]);
+
+        if(progressBarPercentage < 99) {
+            progressValueNow++;
+            progressBar.setAttribute('aria-valuenow', progressValueNow);
+            progressBar.style.width = progressValueNow + '%';
+        }
+    }
+
+    button.addEventListener('click', async _ => {
+        try {
+            var trainDataId = document.getElementById('selectedTrainHidden').value;
+            var testDataId = document.getElementById('selectedTestHidden').value;
+            var equipName = document.getElementById('selectedEquipNameHidden').value;
+            var chamberName = document.getElementById('selectedChamberNameHidden').value;
+            var recipeName = document.getElementById('selectedRecipeNameHidden').value;
+            var revisionNo = document.getElementById('selectedRevisionNoHidden').value;
+            var sensorNo = document.getElementById('sensorNo').value;
+            var thresholdStd = document.getElementById('thresholdStd').value;
+            var numTraindata = $('#num_traindata').text();
+            var numTestData = $('#num_testdata').text();
+
+            var trainTime = {{ TrainTime }};
+            var testTime = {{ TestTime }};
+
+            var secondPer1Percent = (trainTime * Number.parseFloat(numTraindata) / 100) + (testTime * Number.parseFloat(numTestData) / 100);
+            console.log(secondPer1Percent);
+
+            progress = setInterval(increaseProgress, secondPer1Percent * 1000);
+
+            console.log(trainDataId);
+            const response = await fetch('/training/start', {
+                method: 'POST',
+                headers: { "X-CSRFToken": getCookie("csrftoken") },
+                body: JSON.stringify({
+                    trainDataId : trainDataId,
+                    testDataId : testDataId,
+                    sensorNo : sensorNo,
+                    thresholdStd : thresholdStd,
+                    equipName : equipName,
+                    chamberName : chamberName,
+                    recipeName : recipeName,
+                    revisionNo : revisionNo,
+                    numTrain : numTraindata,
+                    numTest: numTestData,
+                })
+            });
+            console.log('Completed!', response);
+            const trainstartBtn = document.getElementById('trainstart-btn');
+            trainstartBtn.disabled = true;
+        } catch(err) {
+            console.error(`Error: ${err}`);
+        }
+        executeMonitoring();
+    });
+</script>
+
+<script>
+    const button2 = document.getElementById('threshold-btn');
+
+    button2.addEventListener('click', async _ => {
+        try {
+            if (document.getElementById('currentThreshold').value != "") {
+                var trainStaticPath = document.getElementById('selectedTrainpathHidden').value;
+                var adjustThreshold = document.getElementById('adjustThreshold').value;
+
+                const response = await fetch('training/adjust_threshold', {
+                    method: 'POST',
+                    headers: {"X-CSRFToken": getCookie("csrftoken")},
+                    body: JSON.stringify({
+                        trainStaticPath: trainStaticPath,
+                        adjustThreshold: adjustThreshold
+                    })
+                });
+                console.log('Completed!', response);
+            }
+        } catch (err) {
+            console.error(`Error: ${err}`);
+        }
+
+        // setBranchLine(chart2, thresholdLineValue);
+    });
+</script>
+
+
+
+<script>
+    var canvas1 = document.getElementById('canvas1').getContext('2d');
+    var canvas2 = document.getElementById('canvas2').getContext('2d');
+    var canvas3 = document.getElementById('canvas3').getContext('2d');
+    var canvas4 = document.getElementById('canvas4').getContext('2d');
+
+    var chart1;
+    var chart2;
+    var chart3;
+    var chart4;
+
+    var leftBtn = document.getElementById('leftBtn');
+    leftBtn.addEventListener('click', leftBtnClick);
+
+    var rightBtn = document.getElementById('rightBtn');
+    rightBtn.addEventListener('click', rightBtnClick);
+
+    var statusLoss = [];
+    var statusValLoss = [];
+    var trainAnomalyScoreXAxis = [];
+    var trainAnomalyScoreData = [];
+    var testAnomalyScoreXAxis = [];
+    var testAnomalyScoreData = [];
+    var csvList = [];
+    var dataList = [];
+
+    var csvIndex = 0;
+    var thresholdLineValue;
+    var timer;
+
+    //파일 리스트 호출 함수
+    function executeMonitoring() {
+        var trainStaticPath = document.getElementById('selectedTrainpathHidden').value;
+        var testStaticPath = document.getElementById('selectedTestpathHidden').value;
+        var url = 'training/graphing';
+
+        $.ajax({
+            type: 'POST',
+            url: url,
+            headers: {"X-CSRFToken": getCookie("csrftoken")},
+            cache: false,
+            dataType: 'json',
+            contentType: 'application/json; charset=utf-8',
+            data: JSON.stringify({
+                trainStaticPath: trainStaticPath,
+                testStaticPath: testStaticPath
+            }),
+            processData: false,
+            error: function (request, status, error) {
+                //alert("code:"+request.status+"\n"+"error:"+error);
+                console.log(error.toString());
+
+                const trainstartBtn = document.getElementById('trainstart-btn');
+                trainstartBtn.disabled = false;
+            },
+            success: function (result) {
+                console.log(result)
+
+                // if (result['state'] == 'True') {
+                //     // const trainstartBtn = document.getElementById('trainstart-btn');
+                //     // trainstartBtn.disabled = true;
+                //     const trainstartBtn = document.getElementById('trainstart-btn');
+                //     const buttonText = document.getElementsByClassName('.button__text');
+                //     trainstartBtn.disabled = false;
+                //     buttonText.style.visibility = 'visible';
+                // }
+
+                var list = "";
+                var file_Name = "";
+                var date = "";
+                var lot_No = "";
+
+                $("#anomalies_list").empty();
+
+                //파일 리스트를 날짜와 Lot 순서로 변경하여 출력
+                $.each(result.anomalies_list, function (i, item) {
+                    //alert(i);
+                    file_Name = item.replace(".csv", "").split("_");
+                    //일자
+                    date = file_Name[0] + "/" + file_Name[1] + "/" + file_Name[2];
+                    //Lot No
+                    lot_No = file_Name[3] + "_" + file_Name[4];
+
+                    //실제 테이블에 리스팅
+                    list += "<tr>";
+                    list += "   <td>" + date + "</td>";
+                    list += "   <td>" + lot_No + "</td>";
+                    list += "   <input type='hidden' id='seq_" + i + "' value='" + i + "'>";
+                    list += "   <input type='hidden' id='file_" + item + "' value='" + item + "'>";
+                    list += "</tr>";
+                });
+
+                $("#anomalies_list").append(list);
+
+                if (result['state'] == 'True') {
+                    console.log(result);
+
+                    $('#currentThreshold').val(result.current_threshold)
+                    // 1번 차트 데이터
+                    statusLoss = result.status_loss;            // 1차원 배열
+                    statusValLoss = result.status_val_loss;    // 1차원 배열
+
+                    // 2번 차트 데이터 (우상단)
+                    trainAnomalyScoreXAxis = Object.keys(result.train_anomaly_score).map(
+                        (value) => (parseFloat(value) * 1000).toFixed(2)
+                    ); // 1차원 배열; // 1차원 배열
+                    trainAnomalyScoreData = Object.values(result.train_anomaly_score); // 1차원 배열
+
+                    // 3번 차트 데이터
+                    csvList = result.csv_list.map(
+                        (value) => value[0]
+                    );   // 파일 이름 (센서 이[름 아님) // 1차원 배열
+
+                    dataList = result.csv_list.map(
+                        (value) => value[1]
+                    );  // 차트 데이터 - 2차원 배열
+
+                    // 4번 차트 데이터
+                    testAnomalyScoreXAxis = Object.keys(result.test_anomaly_score).map(
+                        (value) => (parseFloat(value) * 1000).toFixed(2)
+                    ); // 1차원 배열
+                    testAnomalyScoreData = Object.values(result.test_anomaly_score); // 1차원 배열
+                    thresholdLineValue = parseFloat(result.current_threshold).toFixed(2);
+
+                    clearInterval(progress);
+                    progressBar.style.width = '100%';
+                    drawCharts();
+
+                    if(result['state'] === 'False')  timer = setTimeout("executeMonitoring()", 5000);
+
+                }//5초 간격으로 하여 디렉토리 파일 리스트 호출 및 csv data 호출(간격 조정 필요한경우 수치 데이터 조정)
+            }
+        });
+
+    }
+
+    function drawCharts() {
+        chart1 = new Chart(canvas1, {
+            type: 'line',
+            data: {
+                labels: xAxisOf(statusLoss),
+                datasets: [
+                    dataset(statusLoss, 'status loss', false, null, 'blue', 1),
+                    dataset(statusValLoss, 'status val loss', false, null, 'red', 1),
+                ]
+            },
+            options: {},
+        });
+
+        chart2 = new Chart(canvas2, {
+            type: 'line',
+            data: {
+                labels: trainAnomalyScoreXAxis,
+                datasets: [
+                    dataset(trainAnomalyScoreData, 'train anomaly score', true, 'gray', 'transparent', 0),
+                ]
+            },
+            options: {
+                scales: {
+                    yAxes: {
+                        id: "train_anomalies_y",
+                    },
+                    xAxes: {
+                        id: "train_anomalies_x",
+                    },
+                }
+            },
+        });
+
+        setBranchLine(chart2, thresholdLineValue);
+
+        chart3 =  new Chart(canvas3, {
+            type: 'line',
+            data: {
+                labels: xAxisOf(dataList[csvIndex][0]),
+                datasets: [
+                    dataset(dataList[csvIndex][0], 'test data', false, null, 'blue', 1),
+                    dataset(dataList[csvIndex][1], 'test predicted', false, null, 'red', 1),
+                ]
+            },
+            options: {
+
+            },
+        });
+
+        chart4 = new Chart(canvas4, {
+            type: 'line',
+            data: {
+                labels: testAnomalyScoreXAxis,
+                datasets: [
+                    dataset(testAnomalyScoreData, 'test anomaly score', true, 'gray', 'transparent', 0),
+                ]
+            },
+            options: {
+                scales: {
+                    yAxes: {
+                        id: "test_anomalies_y",
+                    },
+                    xAxes: {
+                        id: "test_anomalies_x",
+                        gridLines: {
+                            drawTicks: false,
+                        },
+                    },
+                }
+            },
+        });
+    }
+
+    function reloadChart3() {
+        chart3 =  new Chart(canvas3, {
+            type: 'line',
+            data: {
+                labels: xAxisOf(dataList[csvIndex][0]),
+                datasets: [
+                    dataset(dataList[csvIndex][0], 'test data', false, null, 'blue', 1),
+                    dataset(dataList[csvIndex][1], 'test predicted', false, null, 'red', 1),
+                ]
+            },
+            options: {},
+        });
+    }
+
+    function dataset(
+        data,
+        labelText,
+        isFilled,
+        backgroundColor,
+        borderColor,
+        borderWidth
+    ) {
+        return {
+            label: labelText,
+            type: 'line',
+            fill: isFilled,
+            backgroundColor: isFilled ? backgroundColor : null,
+            pointRadius: 0,
+            borderColor: borderColor,
+            borderWidth: borderWidth,
+            data: data
+        };
+    }
+
+    function leftBtnClick() {
+        if(csvIndex <= 0) return;
+
+        csvIndex--;
+
+        chart3.data.datasets[0].dataList = dataList[csvIndex][0];
+        chart3.data.datasets[1].dataList = dataList[csvIndex][1];
+        chart3.destroy();
+        reloadChart3();
+    }
+
+    function rightBtnClick() {
+        if(csvIndex >= dataList.length - 1) return;
+
+        csvIndex++;
+
+        chart3.data.datasets[0].dataList = dataList[csvIndex][0];
+        chart3.data.datasets[1].dataList = dataList[csvIndex][1];
+        chart3.destroy();
+        reloadChart3();
+    }
+
+    function xAxisOf(dataList) {
+        return dataList.map(
+            (_, index) => index + 1
+        );
+    }
+
+    function setBranchLine(chart, xValue) {
+        let gridLinesColorArray = [];
+        for(let i=0; i<chart.data.labels.length; i++) gridLinesColorArray[i] = '#E0E0E0';
+
+        let idx = chart.data.labels.indexOf(xValue.toString());
+        if (idx !== -1) gridLinesColorArray[idx] = 'red';
+
+        console.log(gridLinesColorArray);
+        chart.options.scales.xAxes.grid.color = gridLinesColorArray;
+    }
+</script>
+
+{% endblock javascripts %}

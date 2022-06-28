@@ -1,0 +1,67 @@
+{% extends 'layouts/base.html' %}
+{% load static %}
+{% block title %}login{% endblock %}
+<!-- Specific Page CSS goes HERE  -->
+{% block stylesheets %}{% endblock stylesheets %}
+
+{% block body %}
+
+    <main class="main" id="top">
+        <div class="container-fluid">
+            <div class="row min-vh-100 flex-center g-0">
+                <div class="col-lg-8 col-xxl-5 py-3 position-relative">
+                    <div class="card overflow-hidden z-index-1">
+                        <div class="card-body p-0">
+                            <div class="row g-0 h-100">
+                                <div class="col-md-5 text-center bg-card-gradient">
+                                    <div class="position-relative p-4 pt-md-5 pb-md-7 light">
+                                        <div class="bg-holder bg-auth-card-shape" style="background-image:url({% static 'assets/img/icons/spot-illustrations/half-circle.png' %});"></div>
+                                        <div class="z-index-1 position-relative">
+                                            <a class="link-light mb-4 font-sans-serif fs-4 d-inline-block fw-bolder" href="/" style="text-decoration: none;">AIBIZ</a>
+                                            <p class="opacity-75 text-white">With the power of AIBIZ, you can now focus only on functionaries for your digital products, while leaving the UI design on us!</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-7 d-flex flex-center">
+                                    <div class="p-4 p-md-5 flex-grow-1">
+                                        <div class="row flex-between-center">
+                                            <div class="col-auto">
+                                                <h3>Account Login</h3>
+                                            </div>
+                                        </div>
+                                        <form action='/login' method='post' id='LoginForm'>
+                                            {% csrf_token %}
+                                            <div class="mb-3">
+                                                <label class="form-label" for="card-id">ID</label>
+                                                <input class="form-control" id="card-id" autocomplete="off" name="card-id" type="text" onkeyup="enterkey()"/>
+                                            </div>
+                                            <div class="mb-3">
+                                                <div class="d-flex justify-content-between">
+                                                    <label class="form-label" for="card-password">Password</label> <!-- <a class="fs--1" href="#">Forgot Password?</a> -->
+                                                </div>
+                                                <input class="form-control" id="card-password" name="card-password" type="password" onkeyup="enterkey()"/>
+                                            </div>
+                                            <div class="form-check mb-0">
+                                                <input class="form-check-input" type="checkbox" id="card-checkbox" checked="checked" />
+                                                <label class="form-check-label" for="card-checkbox">Remember me</label>
+                                            </div>
+                                            <div class="mb-3">
+                                                <button class="btn btn-primary d-block w-100 mt-3" type="button" name="submit" onclick="login()">Log in</button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+  
+{% endblock %}
+
+<!-- Specific Page JS goes HERE  -->
+{% block javascripts %}
+<script src="{% static 'jsmeta/user/script_user_login.js' %}"></script>
+{% endblock javascripts %}

@@ -1,0 +1,152 @@
+{% extends 'layouts/base.html' %} {% load static %} {% block title %}training
+{%endblock %}
+<!-- Specific Page CSS goes HERE  -->
+{% block stylesheets %}
+    {{ block.super }}
+    <link rel="stylesheet" href="{% static 'assets/css/analysis.css' %}"/>
+    <link rel="stylesheet" href="{% static 'vendors/jstree/src/themes/default/style.css' %}" />
+    <link rel="stylesheet" href="https://unpkg.com/bootstrap-table@1.19.1/dist/bootstrap-table.min.css">
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css" />
+    <style>
+    .pagination-info {
+        display: none;
+    }
+    .table>:not(caption)>*>* {
+        padding: 0.09rem;
+        background-color: var(--falcon-table-bg);
+        border-bottom-width: 1px;
+        -webkit-box-shadow: inset 0 0 0 9999px var(--falcon-table-accent-bg);
+        box-shadow: inset 0 0 0 9999px var(--falcon-table-accent-bg);
+    }
+    .datalist {
+        border: 1px solid gray;
+    }
+    </style>
+{% endblock stylesheets %}
+{% block content %}
+    <main class="main" id="top">
+        <div class="container-fluid">
+            <div class="row g-3 mb-3">
+                <div class="col-lg-3">
+                    <div class="card mb-3">
+                        <div class="card-header d-flex flex-between-center bg-light py-3">
+                            <h6 class="mb-0">Data Setting</h6>
+                            <div class="btn-div">
+                                <button type="button" onclick="convertDRS();">drs to csv</button>
+                            </div>
+                        </div>
+                        <div class="card-body py-5 py-sm-3">
+                            <div class="row">
+                                <!-- 트리구조  -->
+                                <div id="jstree_div" style="overflow: auto;"></div>
+                                <!-- /트리구조 -->
+                            </div>
+                            <i class="jtree-icon jstree-themeicon" role="presentation"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-4">
+                    <div class="card mb-3">
+                        <div class="card-header d-flex flex-between-center bg-light py-3">
+                            <h6 class="mb-0" id="recipe_name">Train data</h6>
+                            <input hidden type="text" value="" id="path"/>
+                        </div>
+                        <div class="kanban-items-container border bg-white dark__bg-1000 rounded-2 py-3 mb-3" id="trn-div" style="height: 750px; overflow: auto;">
+
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-1" style="text-align: center; margin: 350px 0;">
+                    <div>
+                        <button class="btn btn-outline-secondary" type="button" onclick="testSet();">
+                            <svg class="svg-inline--fa fa-angle-double-right fa-w-14 text-900 fs-3" aria-hidden="true" focusable="false" data-prefix="fas" data-icon="angle-double-right" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" data-fa-i2svg=""><path fill="currentColor" d="M224.3 273l-136 136c-9.4 9.4-24.6 9.4-33.9 0l-22.6-22.6c-9.4-9.4-9.4-24.6 0-33.9l96.4-96.4-96.4-96.4c-9.4-9.4-9.4-24.6 0-33.9L54.3 103c9.4-9.4 24.6-9.4 33.9 0l136 136c9.5 9.4 9.5 24.6.1 34zm192-34l-136-136c-9.4-9.4-24.6-9.4-33.9 0l-22.6 22.6c-9.4 9.4-9.4 24.6 0 33.9l96.4 96.4-96.4 96.4c-9.4 9.4-9.4 24.6 0 33.9l22.6 22.6c9.4 9.4 24.6 9.4 33.9 0l136-136c9.4-9.2 9.4-24.4 0-33.8z"></path></svg>
+                        </button><br/>
+                        <button class="btn btn-outline-secondary" type="button" onclick="testRemove();">
+                            <svg class="svg-inline--fa fa-angle-double-left fa-w-14 text-900 fs-3" aria-hidden="true" focusable="false" data-prefix="fas" data-icon="angle-double-left" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" data-fa-i2svg=""><path fill="currentColor" d="M223.7 239l136-136c9.4-9.4 24.6-9.4 33.9 0l22.6 22.6c9.4 9.4 9.4 24.6 0 33.9L319.9 256l96.4 96.4c9.4 9.4 9.4 24.6 0 33.9L393.7 409c-9.4 9.4-24.6 9.4-33.9 0l-136-136c-9.5-9.4-9.5-24.6-.1-34zm-192 34l136 136c9.4 9.4 24.6 9.4 33.9 0l22.6-22.6c9.4-9.4 9.4-24.6 0-33.9L127.9 256l96.4-96.4c9.4-9.4 9.4-24.6 0-33.9L201.7 103c-9.4-9.4-24.6-9.4-33.9 0l-136 136c-9.5 9.4-9.5 24.6-.1 34z"></path></svg>
+                        </button>
+                    </div>
+                </div>
+                <div class="col-lg-4">
+                    <div class="card mb-3">
+                        <div class="card-header d-flex flex-between-center bg-light py-3">
+                            <h6 class="mb-0" id="recipe_name">Test data</h6>
+                        </div>
+                        <div class="kanban-items-container border bg-white dark__bg-1000 rounded-2 py-3 mb-3" id="trn-div" style="height: 750px; overflow: auto;">
+
+                        </div>
+                    </div>
+                </div>
+                <div class="btn-div" style="overflow: hidden;">
+                    <button class="btn btn-primary" type="button" data-bs-toggle="modal" data-bs-target="#gen-modal" onclick="SetUp();" style="float: right;">Data SET</button>
+                </div>
+            </div>
+        </div>
+        <div class="modal fade" id="gen-modal" tabindex="-1" role="dialog" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered" role="document" style="max-width: 500px">
+                <div class="modal-content position-relative">
+                    <div class="position-absolute top-0 end-0 mt-2 me-2 z-index-1">
+                        <button class="btn-close btn btn-sm btn-circle d-flex flex-center transition-base" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body p-0">
+                        <div class="p-4 pb-0">
+                            <div id="resultmsg" class="mb-3">
+                                <label class="col-form-label">Gen tensor...</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="modal fade" id="complete-modal" tabindex="-1" role="dialog" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered" role="document" style="max-width: 500px">
+                <div class="modal-body p-0">
+                    <div class="alert alert-success border-2 d-flex align-items-center" role="alert">
+                        <div class="bg-success me-3 icon-item"><span class="fas fa-check-circle text-white fs-3"></span></div>
+                        <p class="mb-0 flex-1">Gen Success!</p>
+                        <button class="btn-close" type="button" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="modal fade" id="fail-modal" tabindex="-1" role="dialog" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered" role="document" style="max-width: 500px">
+                <div class="modal-body p-0">
+                    <div class="alert alert-warning border-2 d-flex align-items-center" role="alert">
+                        <div class="bg-warning me-3 icon-item"><span class="fas fa-exclamation-circle text-white fs-3"></span></div>
+                        <p class="mb-0 flex-1">Gen Failed!</p>
+                        <button class="btn-close" type="button" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+{% endblock %}
+
+<!-- Specific Page JS goes HERE  -->
+{% block javascripts %}
+    {{ block.super }}
+    <!-- datarangepicker -->
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/momentjs/latest/moment.min.js"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>
+    <!-- jsTree -->
+    <script src="{% static '/vendors/jstree/src/jstree.js' %}"></script>
+    <!-- data setup script -->
+    <script src="{% static '/jsmeta/anomaly/gridtest.js' %}"></script>
+    <script src="{% static '/jsmeta/anomaly/selfgrid.js' %}"></script>
+    <!-- drag -->
+    <script src="{% static '/vendors/draggable/draggable.bundle.legacy.js' %}"></script>
+    <script>
+    <!-- 트리생성 -->
+        let treedata= "{{ treedata }}";
+        treedata = JSON.parse(treedata.replace(/(&quot\;)/g,"\""));
+        $('#jstree_div').jstree({
+            "plugins" : [ "wholerow", "changed" ],
+            'core' : {
+                'data' : treedata
+            }
+        });
+
+
+
+    </script>
+{% endblock javascripts %}

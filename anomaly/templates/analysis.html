@@ -1,0 +1,486 @@
+{% extends 'layouts/base.html' %} {% load static %} {% block title %}training
+{%endblock %}
+<!-- Specific Page CSS goes HERE  -->
+{% block stylesheets %}
+    {{ block.super }}
+    <link rel="stylesheet" href="{% static 'assets/css/analysis.css' %}"/>
+    <link rel="stylesheet" href="{% static 'vendors/jstree/src/themes/default/style.css' %}" />
+{% endblock stylesheets %}
+{% block content %}
+    <main class="main" id="top">
+        <div class="container-fluid">
+            <div class="row g-3 mb-3">
+                <div class="col-lg-4">
+                    <div class="card h-100">
+                        <div class="card-header d-flex flex-between-center bg-light py-3">
+                            <h6 class="mb-0">Analysis</h6>
+                        </div>
+                        <div class="card-body py-5 py-sm-3">
+                            <div class="row">
+                                <!-- 트리구조  -->
+                                <div id="jstree_div"></div>
+                                <!-- /트리구조 -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-8">
+                    <div class="card mb-3">
+                        <div class="card-header d-flex flex-between-center bg-light py-3">
+                            <h6 class="mb-0">Analysis</h6>
+                        </div>
+                        <div class="card-body py-5 py-sm-3">
+                            <div>
+                                {#                                <form action="test()">#}
+                                <div class="row">
+                                    <div class="col-7">
+                                        <label>
+                                            <span class="list-title period">기간: </span>
+                                            <input class="mb-1" type="date" name="start-day" id="date-start" />
+                                            -
+                                            <input type="date" name="end-day" id="date-end" style="display: flex; float: right;"/>
+                                        </label>
+                                    </div>
+                                    <div class="col-5">
+                                        <p>
+                                            <button class="btn btn-primary" id="start-btn" onclick="this.classList.toggle('button--loading'); this.disabled=true">
+                                               확인
+                                            </button>
+                                        </p>
+                                    </div>
+                                </div>
+                                {#                                </form>       #}
+                            </div>
+                            <div class="row text-center">
+                                <div class="col">
+                                    <button class="btn btn-secondary" id="normal">정상</button>
+                                </div>
+                                <div class="col">
+                                    <button class="btn btn-secondary" id="anomalies">이상</button>
+                                </div>
+                                <div class="col">
+                                    <button class="btn btn-secondary" id="normalize">정규화</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-lg">
+                            <div class="card">
+                                <div class="card-header d-flex flex-between-center">
+                                    <h6 class="mb-0">Graph</h6>
+                                </div>
+                                <div class="card-body">
+                                    <canvas id="canvas"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- <div class="col">
+                          <div class="card">
+                            <div class="card-header d-flex flex-between-center">
+                              <h6 class="mb-0">Grape</h6>
+                            </div>
+                            <div class="card-body"></div>
+                          </div>
+                        </div> -->
+                    </div>
+                </div>
+                <div class="col-lg">
+                    <div class="card h-100">
+                        <div class="card-header d-flex flex-between-center bg-light py-3">
+                            <h6 class="mb-0">Warning List</h6>
+                        </div>
+                        <div class="card-body pb-3" style="margin: 0 2em 0 2em">
+                            <div
+                                    class="row text-center border-sm-bottom pb-2"
+                                    style="font-weight: 700"
+                            >
+                                <div class="col">Date</div>
+                                <div class="col">제품명</div>
+                            </div>
+                            <table
+                                    id="anomalies_list"
+                                    style="width: 100%; margin-top: 1em"
+                            ></table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+                    <!----------------------------------- Modal -------------------------------->
+            <div class="modal fade" id="viewWarning" tabindex="-1" aria-labelledby="viewWarningLabel" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="viewWarningLabel">Select Warning List</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div>
+                                <label id="file_name_popup"></label>
+                                <canvas id="modalpopupCanvas"></canvas>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" id="footer-btn">확인</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {#            end modal             #}
+        </div>
+    </main>
+{% endblock %}
+
+<!-- Specific Page JS goes HERE  -->
+{% block javascripts %}
+    <script src="/static/vendors/jstree/src/jstree.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+    <!-- 트리생성 -->
+        let treedata= "{{ treedata }}"
+        treedata = JSON.parse(treedata.replace(/(&quot\;)/g,"\"").replace(/\\/g,"\\\\"))
+        $('#jstree_div').jstree({
+            "checkbox": { "keep_selected_style": false },
+            'plugins' : [ "wholerow", "checkbox" ],
+            'core' : { 'data' : treedata }
+        });
+    </script>
+    <script>
+        // chart component
+        var canvas = document.getElementById('canvas').getContext('2d');
+        var chart1;
+
+        var normalDataArray = [];
+        var normalizedDataArray = [];
+        var anomalyDataArray = [];
+        var normalizedAnomalyDataArray = [];
+
+        var maxXAxisLength = 0;
+
+        var normalBtn = document.getElementById('normal');
+        var anomalyBtn = document.getElementById('anomalies');
+        var normalizeBtn = document.getElementById('normalize');
+        var startBtn = document.getElementById('start-btn');
+
+        var isNormalized = false;
+        var isNormalChart = true;
+        var isAnomalyChart = false;
+
+        document.getElementById("date-start").value = new Date()
+            .toISOString()
+            .substring(0, 10);
+        document.getElementById("date-end").value = new Date()
+            .toISOString()
+            .substring(0, 10);
+    </script>
+    <script>
+        normalBtn.addEventListener('click', normalBtnClick);
+        anomalyBtn.addEventListener('click', anomalyBtnClick);
+        normalizeBtn.addEventListener('click', normalizeBtnClick);
+
+
+        startBtn.addEventListener('click', async _ => {
+
+                const url = 'analysis?'
+                let date_start = document.getElementById("date-start").value;
+                let date_end = document.getElementById("date-end").value;
+
+                <!-- get tree selected node id-->
+                let tree_checked_ids = [];
+                let tree_selectedNodes = await $('#jstree_div').jstree("get_bottom_checked", true);
+                $.each(tree_selectedNodes, function() {
+                    tree_checked_ids.push(this.id);
+                });
+
+                let querystr = await new URLSearchParams({
+                    date_start: date_start,
+                    date_end: date_end,
+                    tree_checked_ids: tree_checked_ids
+                })
+                const response = await fetch(url + querystr, {
+                    method: 'GET',
+                    headers: {"X-CSRFToken": getCookie("csrftoken")},
+                });
+
+                startBtn.disabled = false;
+                startBtn.classList = "btn btn-primary"
+
+                const result = await response.json();
+
+                let list = "";
+                let file_Name;
+                let date = "";
+                let lot_No = "";
+
+                await $("#anomalies_list").empty();
+                //파일 리스트를 날짜와 Lot 순서로 변경하여 출력
+                await function (){if ( typeof(result.anomaly_filelist) !== "undefined")
+                {
+                    $.each(result.anomaly_filelist, function (i, item) {
+                    //alert(i);
+                    file_Name = item.replace(".csv", "").split("_");
+                    //일자
+                    date = file_Name[0] + "/" + file_Name[1] + "/" + file_Name[2];
+                    //Lot No
+                    lot_No = file_Name[3] + "_" + file_Name[4];
+
+                    //실제 테이블에 리스팅
+                    list += "<tr>";
+                    list += "   <td>" + date + "</td>";
+                    list += "   <td><button class='btn col btn-falcon-default btn-sm' data-bs-toggle='modal' " +
+                        "data-bs-target='#viewWarning' onclick='popup_Warning(" + i + ");'>"
+                        + lot_No + "</button></td>";
+                    list +=
+                        "   <input type='hidden' id='seq_" + i + "' value='" + i + "'>";
+                    list +=
+                        "   <input type='hidden' id='file_" +
+                        item +
+                        "' value='" +
+                        item +
+                        "'>";
+                    list += "</tr>";
+                });
+
+                $("#anomalies_list").append(list);
+
+                modal_csvList = result.anomaly_csv_fulldata.map((value) => value[0]);
+                modal_dataList = result.anomaly_csv_fulldata.map((value) => value[1]);
+                modal_xAxis = modal_dataList[0][0].map((_, index) => index + 1);
+
+                console.log('aaaaa', modal_csvList)
+                console.log('bbbbb', modal_dataList)
+                console.log('test:::', modal_dataList[0][0])
+                console.log('test2:::', modal_dataList[1][0])
+
+                anomalyDataArray = result.anomaly_csvdata;
+                normalizedAnomalyDataArray = result.normalized_anomaly_csvdata;
+	        }
+        }
+
+                normalDataArray = result.raw_data.map((value) => value[1]);
+                normalizedDataArray = result.normalized_data;
+                
+                console.log("1",normalDataArray);
+                console.log("2.1",anomalyDataArray);
+                console.log("2.2",normalizedAnomalyDataArray);
+                console.log("3",normalizedDataArray);
+                console.log('Completed!', response);
+                
+                if(chart1 != null) chart1.destroy();
+                drawChart(normalDataArray, anomalyDataArray);
+
+        });
+
+        // function drawNormalChart(dataList) {
+        //     var datasets = dataList.map(
+        //         function dataMap(value, index, array) {
+        //              =
+        //                 array[normalDataMaxIndex].length > value.length
+        //                     ? normalDataMaxIndex
+        //                     : index;
+        //
+        //             return dataset(value, '', false, null, 'transparent', 1);
+        //         }
+        //     );
+        //
+        //     chart1 = new Chart(canvas, {
+        //         type: 'line',
+        //         data: {
+        //             labels: xAxisOf(maxXAxisLength),
+        //             datasets: datasets
+        //         },
+        //         options: {
+        //             legend: {
+        //                 display: false
+        //             }
+        //         },
+        //     });
+        //
+        //     isNormalChart = true;
+        //     isAnomalyChart = false;
+        // }
+
+        function drawChart(normalList, anomalyList) {
+            maxXAxisLength = 0;
+
+            var normalDataSets = isNormalChart
+                ? normalList.map(function dataMap(value) {
+                    maxXAxisLength = maxXAxisLength > value.length
+                        ? maxXAxisLength
+                        : value.length;
+
+                    return dataset(value, '', false, null, 'black', 1);
+                })
+                : [];
+
+            var anomalyDataSets = isAnomalyChart
+                ? anomalyList.map(function dataMap(value) {
+                    maxXAxisLength = maxXAxisLength > value.length
+                        ? maxXAxisLength
+                        : value.length;
+
+                    return dataset(value, '', false, null, 'red', 1);
+                })
+                : [];
+
+            chart1 = new Chart(canvas, {
+                type: 'line',
+                data: {
+                    labels: xAxisOf(maxXAxisLength),
+                    datasets: [...normalDataSets, ...anomalyDataSets],
+                },
+                options: {
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            title: {
+                                display: true,
+                                text: 'Sensor Value'
+                            },
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Time'
+                            },
+                        },
+                    },
+                },
+            });
+        }
+
+        function dataset(
+            data,
+            labelText,
+            isFilled,
+            backgroundColor,
+            borderColor,
+            borderWidth
+        ) {
+            return {
+                label: labelText,
+                type: 'line',
+                fill: isFilled,
+                backgroundColor: isFilled ? backgroundColor : null,
+                pointRadius: 0,
+                borderColor: borderColor,
+                borderWidth: borderWidth,
+                data: data
+            };
+        }
+
+        function xAxisOf(length) {
+            var arr = [];
+
+            for(let i=0; i<length; i++) arr[i] = i+1;
+
+            return arr;
+        }
+
+        function normalBtnClick() {
+            isNormalChart = !isNormalChart;
+            if(chart1 != null) chart1.destroy();
+
+            isNormalized
+                ? drawChart(normalDataArray, anomalyDataArray)
+                : drawChart(normalizedDataArray, normalizedAnomalyDataArray);
+
+            if (isNormalChart == true) {
+                normalBtn.classList = 'btn btn-primary'
+            }
+            else {
+               normalBtn.classList = 'btn btn-secondary'
+            }
+            // if(isNormalized)    drawNormalChart(normalDataArray)
+            // else    drawNormalChart(normalizedDataArray);
+        }
+
+        function anomalyBtnClick() {
+            isAnomalyChart = !isAnomalyChart;
+
+            if(chart1 != null) chart1.destroy();
+
+            isNormalized
+                ? drawChart(normalDataArray, anomalyDataArray)
+                : drawChart(normalizedDataArray, normalizedAnomalyDataArray);
+
+            if (isAnomalyChart == true) {
+                anomalyBtn.classList = 'btn btn-primary'
+            }
+            else {
+               anomalyBtn.classList = 'btn btn-secondary'
+            }
+        }
+
+        function normalizeBtnClick() {
+            isNormalized = !isNormalized;
+
+            if(isNormalChart || isAnomalyChart) {
+                if(chart1 != null) chart1.destroy();
+
+                isNormalized
+                    ? drawChart(normalDataArray, anomalyDataArray)
+                    : drawChart(normalizedDataArray, normalizedAnomalyDataArray);
+
+                if (isNormalized == false) {
+                    normalizeBtn.classList = 'btn btn-primary'
+                }
+                else {
+                    normalizeBtn.classList = 'btn btn-secondary'
+                }
+            }
+        }
+    </script>
+    <script>
+    var modalpopupCanvas = document.getElementById("modalpopupCanvas").getContext("2d");
+    var popupChart;
+        function popup_Warning(index){
+            //팝업 버튼 클릭시(파일 리스트) 해당 품목에 대한 파일명과 차트를 표기함.. (모달 폼 사용)
+            document.getElementById('file_name_popup').innerText = modal_csvList[index];
+
+            //차트 중복 생성 에러 방지
+            if(popupChart != undefined)
+                popupChart.destroy();
+
+            drawChart_Popup(index);
+        }
+
+        function drawChart_Popup(index) {
+           popupChart = new Chart(modalpopupCanvas, {
+                type: "line",
+                data: {
+                    labels: modal_xAxis,
+                    datasets: [
+                        {
+                            label: "data",
+                            type: "line",
+                            fill: false,
+                            lineTension: 0,
+                            pointRadius: 0,
+                            borderColor: "blue",
+                            borderWidth: 1,
+                            data: modal_dataList[index][0],
+                        },
+                        {
+                            label: "predicted",
+                            type: "line",
+                            fill: false,
+                            lineTension: 0,
+                            pointRadius: 0,
+                            borderColor: "red",
+                            borderWidth: 1,
+                            data: modal_dataList[index][1],
+                        },
+                    ],
+                },
+                options: {
+                    scales: [],
+                },
+            });
+        }
+    </script>
+{% endblock javascripts %}

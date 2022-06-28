@@ -1,0 +1,398 @@
+{% extends 'layouts/base.html' %}
+{% load static %}
+{% block title %}Process{% endblock %}
+<!-- Specific Page CSS goes HERE  -->
+{% block stylesheets %}
+    {{ block.super }}
+    <style>
+        .table {
+            --falcon-table-active-bg: rgba(70, 130, 180, 1);
+            --falcon-table-active-color: white;
+        }
+        .tablestriped>tbody>tr:nth-child(even){
+            background-color: rgba(255, 255, 255, 1.0);
+        }
+        .table>:not(caption)>*>* {
+            padding: 0 0.75rem;
+            background-color: var(--falcon-table-bg);
+            border-bottom-width: 1px;
+            -webkit-box-shadow: inset 0 0 0 9999px var(--falcon-table-accent-bg);
+            box-shadow: inset 0 0 0 9999px var(--falcon-table-accent-bg);
+        }
+        .table-input {
+            width: 80%;;
+            border: 0;
+            background-color: transparent;
+            color: inherit;
+            table-layout: fixed;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .table-input:focus {
+            outline: none;
+        }
+        .table-select {
+            width: 80%;
+            border: 0;
+            background-color: transparent;
+            color: inherit;
+        }
+        .table-select:focus {
+            outline: none;
+        }
+        .group-table {
+            height: 350px;
+            overflow: auto;
+        }
+    </style>
+{% endblock stylesheets %}
+
+{% block content %}
+    <div class="card mb-3">
+        <div class="card-body position-relative">
+            <div class="row" style="overflow: hidden">
+                <div class="col-lg-9 col-md-8 col-sm-7">
+                    <h3>공정관리</h3>
+                </div>
+                <div class="btn-div col-lg-3 col-md-4 col-sm-5">
+{#                    <button class="btn btn-outline-primary" type="button">업로드</button>#}
+{#                    <button class="btn btn-outline-primary" type="button">다운로드</button>#}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-3 mb-3" style="max-height: 600px; overflow:auto;">
+        <div class="col-lg-4">
+            <div class="card mb-3 group-table">
+                <div class="card-header">
+                    <div class="row flex-between-end">
+                        <div class="col-auto flex-lg-grow-1 flex-lg-basis-0 align-self-center" style="overflow: hidden;">
+                            <h5 class="mb-0" data-anchor="data-anchor" style="display: inline-block; float: left;">공정</h5>
+{#                            {% if request.session.auth.process == 1 %}#}
+                            <div class="btn-div" style="float: left;">
+                                <button type="button" class="btn-sm btn-falcon-primary" data-id="process" onclick="insertion(this.dataset.id);">+ 추가</button>
+                                <button type="button" class="btn-sm btn-falcon-primary" data-id="process" onclick="formChange(this.dataset.id);">수정</button>
+                                <button type="button" class="btn-sm btn-falcon-default" data-id="process" id="process_save" onclick="insertSave(this.dataset.id);">저장</button>
+                            </div>
+                            <div class="btn-div" style="float: right;">
+                                <button type="button" class="btn-sm btn-falcon-danger" data-id="process" onclick="deleteBtn(this.dataset.id);">x 삭제</button>
+                            </div>
+{#                            {% endif %}#}
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body pt-0">
+                    <div class="tab-content">
+                        <div class="tab-pane preview-tab-pane active" role="tabpanel" aria-labelledby="tab-dom-9e80409e-49e0-4986-9fcb-16b9838d0cff" id="dom-9e80409e-49e0-4986-9fcb-16b9838d0cff">
+                            <div class="" style="background-color: rgba(245, 245, 245, 1.0);">
+                                <table class="table tablestriped overflow-hidden" id="process-table">
+                                    <thead>
+                                    <tr class="btn-reveal-trigger" style="background-color: rgba(224, 224, 224, 0.8);" data-id="off">
+                                        <th class="align-middle white-space-nowrap">
+                                            <div class="form-check mb-0">
+                                                <input class="form-check-input" type="checkbox" id="process_all"/>
+                                            </div>
+                                        </th>
+                                        <th scope="col" style="width: 90px;">코드</th>
+                                        <th scope="col" style="width: 130px;">공정명</th>
+                                        <th scope="col">담당팀</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody id="process_start" data-id="0">
+                                    {% for one in process %}
+                                        <tr class="btn-reveal-trigger">
+                                            <td hidden>{{ one.id }}</td>
+                                            <td class="align-middle white-space-nowrap" style="padding-left: 1.25rem;" onclick="">
+                                                <div class="form-check mb-0">
+                                                    <input class="form-check-input factoryChk" type="checkbox" id="checkbox-{{ one.id }}" name="process"/>
+                                                </div>
+                                            </td>
+                                            <td>{{ one.code }}</td>
+                                            <td>{{ one.name }}</td>
+                                            <td hidden>{{ one.department_id.id }}</td>
+                                            <td>{{ one.department_id.name }}</td>
+                                        </tr>
+                                    {% empty %}
+                                        <tr class="btn-reveal-trigger" data-id="off">
+                                            <td colspan="4" style="text-align: center;" class="deleteone">등록된 정보가 없습니다</td>
+                                        </tr>
+                                    {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="card mb-3 group-table">
+                <div class="card-header">
+                    <div class="row flex-between-end">
+                        <div class="col-auto flex-lg-grow-1 flex-lg-basis-0 align-self-center" style="overflow: hidden;">
+                            <h5 class="mb-0" data-anchor="data-anchor" style="display: inline-block; float: left;">장비</h5>
+{#                            {% if request.session.auth.equipment == 1 %}#}
+                            <div class="btn-div" style="float: left;">
+                                <button type="button" class="btn-sm btn-falcon-primary" data-id="equipment" onclick="insertion(this.dataset.id);">+ 추가</button>
+                                <button type="button" class="btn-sm btn-falcon-primary" data-id="equipment" onclick="formChange(this.dataset.id);">수정</button>
+                                <button type="button" class="btn-sm btn-falcon-default" data-id="equipment" id="equipment_save" onclick="insertSave(this.dataset.id);">저장</button>
+                            </div>
+                            <div class="btn-div" style="float: right;">
+                                <button type="button" class="btn-sm btn-falcon-danger" data-id="equipment" onclick="deleteBtn(this.dataset.id);">x 삭제</button>
+                            </div>
+{#                            {% endif %}#}
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body pt-0">
+                    <div class="tab-content">
+                        <div class="tab-pane preview-tab-pane active" role="tabpanel" aria-labelledby="tab-dom-9e80409e-49e0-4986-9fcb-16b9838d0cff" id="dom-9e80409e-49e0-4986-9fcb-16b9838d0cff">
+                            <div class="" style="background-color: rgba(245, 245, 245, 1.0);">
+                                <table class="table tablestriped overflow-hidden" id="equipment-table">
+                                    <thead>
+                                    <tr class="btn-reveal-trigger" style="background-color: rgba(224, 224, 224, 0.8);" data-id="off">
+                                        <th class="align-middle white-space-nowrap">
+                                            <div class="form-check mb-0">
+                                                <input class="form-check-input" type="checkbox" id="equipment_all"/>
+                                            </div>
+                                        </th>
+                                        <th scope="col" style="width: 90px;">코드</th>
+                                        <th scope="col" style="width: 130px;">장비명</th>
+                                        <th scope="col">담당자</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody id="equipment_start" data-id="0" data-pid="0">
+                                    <tr class="btn-reveal-trigger" data-id="off">
+                                        <td colspan="4" style="text-align: center;" class="deleteone">등록된 정보가 없습니다</td>
+                                    </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+    </div>
+        <div class="col-lg-4">
+            <div class="card mb-3 group-table">
+                <div class="card-header">
+                    <div class="row flex-between-end">
+                        <div class="col-auto flex-lg-grow-1 flex-lg-basis-0 align-self-center" style="overflow: hidden;">
+                            <h5 class="mb-0" data-anchor="data-anchor" style="display: inline-block; float: left;">챔버</h5>
+{#                            {% if request.session.auth.chamber == 1 %}#}
+                            <div class="btn-div" style="float: left;">
+                                <button type="button" class="btn-sm btn-falcon-primary" data-id="chamber" onclick="insertion(this.dataset.id);">+ 추가</button>
+                                <button type="button" class="btn-sm btn-falcon-primary" data-id="chamber" onclick="formChange(this.dataset.id);">수정</button>
+                                <button type="button" class="btn-sm btn-falcon-default" data-id="chamber" id="chamber_save" onclick="insertSave(this.dataset.id);">저장</button>
+                            </div>
+                            <div class="btn-div" style="float: right;">
+                                <button type="button" class="btn-sm btn-falcon-danger" data-id="chamber" onclick="deleteBtn(this.dataset.id);">x 삭제</button>
+                            </div>
+{#                            {% endif %}#}
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body pt-0">
+                    <div class="tab-content">
+                        <div class="tab-pane preview-tab-pane active" role="tabpanel" aria-labelledby="tab-dom-9e80409e-49e0-4986-9fcb-16b9838d0cff" id="dom-9e80409e-49e0-4986-9fcb-16b9838d0cff">
+                            <div class="" style="background-color: rgba(245, 245, 245, 1.0);">
+                                <table class="table tablestriped overflow-hidden" id="chamber-table">
+                                    <thead>
+                                    <tr class="btn-reveal-trigger" style="background-color: rgba(224, 224, 224, 0.8);" data-id="off">
+                                        <th class="align-middle white-space-nowrap">
+                                            <div class="form-check mb-0">
+                                                <input class="form-check-input" type="checkbox" id="chamber_all"/>
+                                            </div>
+                                        </th>
+                                        <th scope="col" style="width: 90px;">코드</th>
+                                        <th scope="col" style="width: 130px;">챔버명</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody id="chamber_start" data-id="0">
+                                    <tr class="btn-reveal-trigger" data-id="off">
+                                        <td colspan="3" style="text-align: center;" class="deleteone">등록된 정보가 없습니다</td>
+                                    </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row g-3 mb-3">
+        <div class="col-lg-12">
+            <div class="card mb-3">
+                <div class="card-header">
+                    <div class="row flex-between-end">
+                        <div class="col-auto flex-lg-grow-1 flex-lg-basis-0 align-self-center" style="overflow: hidden;">
+                            <h5 class="mb-0" data-anchor="data-anchor" style="display: inline-block; float: left;">레시피</h5>
+{#                            {% if request.session.auth.recipe == 1 %}#}
+                            <div class="btn-div" style="float: left;">
+                                <button type="button" class="btn-sm btn-falcon-primary" data-id="recipe" onclick="insertion(this.dataset.id);">+ 추가</button>
+                                <button type="button" class="btn-sm btn-falcon-primary" data-id="recipe" onclick="formChange(this.dataset.id);">수정</button>
+                                <button type="button" class="btn-sm btn-falcon-default" data-id="recipe" id="recipe_save" onclick="recipeSave();">저장</button>
+                            </div>
+                            <div class="btn-div" style="float: right;">
+                                <button type="button" class="btn-sm btn-falcon-danger" data-id="recipe" onclick="deleteBtn(this.dataset.id);">x 삭제</button>
+                            </div>
+{#                            {% endif %}#}
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body pt-0">
+                    <div class="tab-content">
+                        <div class="tab-pane preview-tab-pane active" role="tabpanel" aria-labelledby="tab-dom-9e80409e-49e0-4986-9fcb-16b9838d0cff" id="dom-9e80409e-49e0-4986-9fcb-16b9838d0cff">
+                            <div class="" style="background-color: rgba(245, 245, 245, 1.0);">
+                                <table class="table tablestriped overflow-hidden" id="recipe-table">
+                                    <thead>
+                                    <tr class="btn-reveal-trigger" style="background-color: rgba(224, 224, 224, 0.8);">
+                                        <th class="align-middle white-space-nowrap">
+                                            <div class="form-check mb-0">
+                                                <input class="form-check-input" type="checkbox" id="recipe_all"/>
+                                            </div>
+                                        </th>
+                                        <th style="width: 150px;">코드</th>
+                                        <th style="width: 150px;">이름</th>
+                                        <th style="width: 150px;">리비전</th>
+                                        <th>등록자</th>
+                                        <th>연락처</th>
+                                        <th>이메일</th>
+                                        <th>등록날짜</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody id="recipe_start" data-id="0" data-pid="0">
+                                    <tr class="btn-reveal-trigger">
+                                        <td colspan="8" style="text-align: center;" class="deleteone">등록된 정보가 없습니다</td>
+                                    </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+{% endblock %}
+
+<!-- Specific Page JS goes HERE  -->
+{% block javascripts %}
+    {{ block.super }}
+    <script src="{% static 'jsmeta/masterdata/script_process.js' %}"></script>
+    <script>
+        $(document).on('click', '#process-table tr', async function(e) {
+            if($(e.target).is('input:checkbox')) return false;
+            let tr = $(this);
+            if (tr.data('id') === 'off') return false;
+            let td = tr.children();
+            if (tr.hasClass('table-active')) {
+                let list = {"list":[]};
+                tr.removeClass('table-active');
+                tableClear('equipment');
+                let addstr1 = makeRow('process', list);
+                addRow('process', addstr1);
+                tableClear('chamber');
+                let addstr2 = makeRow('equipment', list);
+                addRow('equipment', addstr2);
+                tableClear('recipe');
+                let addstr3 = makeRow('chamber', list);
+                addRow('chamber', addstr3);
+                console.log('분기');
+                return false;
+            }
+            let allTr = document.querySelectorAll(`#process-table tr`);
+            for (let i = 0; i < allTr.length; i++) {
+                allTr[i].classList.remove('table-active');
+            }
+            tr.toggleClass('table-active');
+            let id = td.eq(0).text();
+            let pid = td.eq(4).text();
+            let flag = 'process';
+            const list = await sqlAjax(flag, id);
+            let addstr = makeRow(flag, list);
+            tableClear('equipment');
+            addRow(flag, addstr);
+            tableClear('chamber');
+            let list1 = {"list":[]};
+            let addstr2 = makeRow('equipment', list1);
+            addRow('equipment', addstr2);
+            tableClear('recipe');
+            let addstr3 = makeRow('chamber', list1);
+            addRow('chamber', addstr3);
+            document.getElementById(`equipment_start`).dataset.id = id;
+            document.getElementById(`equipment_start`).dataset.pid = pid;
+            document.getElementById(`recipe_start`).dataset.pid = pid;
+        });
+        $(document).on('click', '#equipment-table tr', async function(e) {
+            if($(e.target).is('input:checkbox')) return false;
+            let tr = $(this);
+            if (tr.data('id') === 'off') return false;
+            let td = tr.children();
+            if (tr.hasClass('table-active')) {
+                let list = {"list":[]};
+                tr.removeClass('table-active');
+                tableClear('chamber');
+                let addstr1 = makeRow('equipment', list);
+                addRow('equipment', addstr1);
+                tableClear('recipe');
+                let addstr2 = makeRow('chamber', list);
+                addRow('chamber', addstr2);
+                return false;
+            }
+            let allTr = document.querySelectorAll(`#equipment-table tr`);
+            for (let i = 0; i < allTr.length; i++) {
+                allTr[i].classList.remove('table-active');
+            }
+            tr.toggleClass('table-active');
+            let id = td.eq(0).text();
+            let flag = 'equipment';
+            const list = await sqlAjax(flag, id);
+            let addstr = makeRow(flag, list);
+            tableClear('chamber');
+            addRow(flag, addstr);
+            tableClear('recipe');
+            let list1 = {"list":[]};
+            let addstr2 = makeRow('chamber', list1);
+            addRow('chamber', addstr2);
+            document.getElementById(`chamber_start`).dataset.id = id;
+            let pid = document.getElementById(`equipment_start`).dataset.pid;
+            document.getElementById(`recipe_start`).dataset.pid = pid;
+        });
+        $(document).on('click', '#chamber-table tr', async function(e) {
+            if($(e.target).is('input:checkbox')) return false;
+            let tr = $(this);
+            if (tr.data('id') === 'off') return false;
+            let td = tr.children();
+            if (tr.hasClass('table-active')) {
+                let list = {"list":[]};
+                tr.removeClass('table-active');
+                tableClear('recipe');
+                let addstr2 = makeRow('chamber', list);
+                addRow('chamber', addstr2);
+                return false;
+            }
+            let allTr = document.querySelectorAll(`#chamber-table tr`);
+            for (let i = 0; i < allTr.length; i++) {
+                allTr[i].classList.remove('table-active');
+            }
+            tr.toggleClass('table-active');
+            let id = td.eq(0).text();
+            let flag = 'chamber';
+            console.log(`${flag}, ${id}`);
+            const list = await sqlAjax(flag, id);
+            console.log(list);
+            let addstr = makeRow(flag, list);
+            tableClear('recipe');
+            addRow(flag, addstr);
+            document.getElementById(`recipe_start`).dataset.id = id;
+            let pid = document.getElementById(`equipment_start`).dataset.pid;
+            document.getElementById(`recipe_start`).dataset.pid = pid;
+        });
+
+    </script>
+{% endblock javascripts %}

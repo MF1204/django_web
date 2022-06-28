@@ -1,0 +1,143 @@
+{% extends 'layouts/base.html' %}
+{% load static %}
+
+<!-- Specific Page CSS goes HERE  -->
+{% block stylesheets %}
+    {{ block.super }}
+<style>
+    .index-content {
+        width: 1400px;
+        margin-right: 0;
+        {#margin: 0 auto;#}
+    }
+    .main_parent {
+        width: 100%;
+        overflow: hidden;
+    }
+    .content_head {
+        height: 50px;
+        position: relative;
+        margin-bottom: 25px;
+    }
+    .main_process {
+        margin: 0;
+        width: 25%;
+        height: auto;
+        float: left;
+        position: relative;
+    }
+    .main_process:hover .img_hover {
+        opacity: 1;
+    }
+    .img_link {
+        display: inline-block;
+        width: 100%;
+        height: auto;
+    }
+    .img_link > img {
+        width: 100%;
+        height: auto;
+    }
+    .img_hover {
+        position: absolute;
+        top: 0;
+        left: 0;
+        opacity: 0;
+        background-color: rgba(192, 192, 192, 0.5);
+        width: 100%;
+        height: 100%;
+        padding: 20px;
+        border-top-left-radius: 28px;
+        border-top-right-radius: 28px;
+    }
+    a:hover {
+        text-decoration: none;
+    }
+    .img_hover > .title {
+        color: white;
+        font-size: 30px;
+    }
+    .content-text {
+        position: absolute;
+        top: 0;
+        left: 20px;
+        opacity: 0;
+        color: gray;
+        font-size: 23px;
+    }
+    .process {
+        position: relative;
+        margin-top: -10px;
+    }
+    .process > img {
+        {#margin: 0;#}
+        {#width: 100%;#}
+        {#height: 100%;#}
+    }
+    .process:hover .img_hover {
+        opacity: 1;
+    }
+</style>
+{% endblock stylesheets %}
+
+{% block content %}
+<div class="index-content">
+    <div class="main_parent">
+        <div class="content_head">
+            <p class="content-text" id="hover_1">제품 이상 예측 : 양산 Wafer 자체에서 발생하는 불량을 공정 센서 데이터를 활용하여 예측</p>
+            <p class="content-text" id="hover_2">장비 상태 모니터링 : Wafer Map의 이상 여부를 판단하여 장비 이상 예측</p>
+            <p class="content-text" id="hover_3">장비 차이 모니터링 : 장비, 혹은 챔버 간 발생하는 센서데이터의 차이를 분석하여 Matching 여부 판단</p>
+            <p class="content-text" id="hover_4">머신비전 : 완제품의 이미지를 활용하여 불량 여부 판단</p>
+            <p class="content-text" id="hover_5">이상 추적 솔루션 : 센서데이터, Wafer Map, 이미지 데이터 등의 이상 여부 및 원인을 엔지니어가 쉽게 파악할 수 있도록 돕는 솔루션</p>
+        </div>
+        <div class="main_process" data-id="1">
+            <a class="img_link" href="{% url 'anomaly:uploaddata' %}">
+                <img src="{% static 'assets/img/products/index_02.png' %}" width="100%;">
+            </a>
+            <a class="img_hover" href="{% url 'anomaly:uploaddata' %}">
+{#                <p class="title">Product Anomaly Prediction</p>#}
+            </a>
+        </div>
+        <div class="main_process" data-id="2">
+            <a class="img_link" href="#">
+                <img src="{% static 'assets/img/products/index_03.png' %}" width="100%;">
+            </a>
+            <a class="img_hover" href="{% url 'anomaly:uploaddata' %}">
+{#                <p class="title">Equipment Condition Monitoring</p>#}
+            </a>
+        </div>
+        <div class="main_process" data-id="3">
+            <a class="img_link" href="#">
+                <img src="{% static 'assets/img/products/index_04.png' %}" width="100%;">
+            </a>
+            <a class="img_hover" href="{% url 'anomaly:uploaddata' %}">
+{#                <p class="title">Defect Tracking Solution</p>#}
+            </a>
+        </div>
+        <div class="main_process" data-id="4">
+            <a class="img_link" href="#">
+                <img src="{% static 'assets/img/products/index_05.png' %}" width="100%;">
+            </a>
+            <a class="img_hover" href="{% url 'anomaly:uploaddata' %}">
+{#                <p class="title">Machine Vision</p>#}
+            </a>
+        </div>
+    </div>
+    <div style="margin-top: -20px;">
+        <img src="{% static 'assets/img/products/index_07.png' %}" width="100%;" style="height: 70px;">
+    </div>
+    <div class="process" data-id="5">
+        <a class="img_link" href="#">
+            <img src="{% static 'assets/img/products/index_06.png' %}" width="100%;">
+        </a>
+        <a class="img_hover" href="{% url 'anomaly:uploaddata' %}">
+{#            <p class="title">Defect Tracking Solution</p>#}
+        </a>
+    </div>
+</div>
+{% endblock content %}
+
+<!-- Specific Page JS goes HERE  -->
+{% block javascripts %}
+    {{ block.super }}
+{% endblock javascripts %}

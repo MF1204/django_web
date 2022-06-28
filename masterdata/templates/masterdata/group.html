@@ -1,0 +1,372 @@
+{% extends 'layouts/base.html' %}
+{% load static %}
+{% block title %}Group{% endblock %}
+<!-- Specific Page CSS goes HERE  -->
+{% block stylesheets %}
+    {{ block.super }}
+    <style>
+        .table {
+            --falcon-table-active-bg: rgba(70, 130, 180, 1);
+            --falcon-table-active-color: white;
+        }
+        .tablestriped>tbody>tr:nth-child(even){
+            background-color: rgba(255, 255, 255, 1.0);
+        }
+        .table>:not(caption)>*>* {
+            padding: 0 0.75rem;
+            background-color: var(--falcon-table-bg);
+            border-bottom-width: 1px;
+            -webkit-box-shadow: inset 0 0 0 9999px var(--falcon-table-accent-bg);
+            box-shadow: inset 0 0 0 9999px var(--falcon-table-accent-bg);
+        }
+        .table-input {
+            width: 80%;
+            border: 0;
+            background-color: transparent;
+            color: inherit;
+        }
+        .table-input:focus {
+            outline: none;
+        }
+        .table-select {
+            width: 100%;
+            border: 0;
+            background-color: transparent;
+            color: inherit;
+        }
+        .table-select:focus {
+            outline: none;
+        }
+        .group-table {
+            height: 250px;
+            overflow: auto;
+        }
+    </style>
+{% endblock stylesheets %}
+
+{% block content %}
+    <div class="card mb-3">
+        <div class="card-body position-relative">
+            <div class="row" style="overflow: hidden">
+                <div class="col-lg-9 col-md-8 col-sm-7">
+                    <h3>조직관리</h3>
+                </div>
+                <div class="btn-div col-lg-3 col-md-4 col-sm-5">
+{#                    <button class="btn btn-outline-primary" type="button">업로드</button>#}
+{#                    <button class="btn btn-outline-primary" type="button">다운로드</button>#}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-3 mb-3">
+        <div class="col-lg-4">
+            <div class="card mb-3 group-table">
+                <div class="card-header">
+                    <div class="row flex-between-end">
+                        <div class="col-auto flex-lg-grow-1 flex-lg-basis-0 align-self-center" style="overflow: hidden;">
+                            <h5 class="mb-0" data-anchor="data-anchor" style="display: inline-block; float: left;">공장</h5>
+                            <div class="btn-div" style="float: left;">
+                                <button type="button" class="btn-sm btn-falcon-primary" data-id="factory" onclick="insertion(this.dataset.id);">+ 추가</button>
+                                <button type="button" class="btn-sm btn-falcon-primary" data-id="factory" onclick="formChange(this.dataset.id);">수정</button>
+                                <button type="button" class="btn-sm btn-falcon-default" data-id="factory" id="factory_save" onclick="insertSave(this.dataset.id);">저장</button>
+                            </div>
+                            <div class="btn-div" style="float: right;">
+                                <button type="button" class="btn-sm btn-falcon-danger" data-id="factory" onclick="deleteBtn(this.dataset.id);">x 삭제</button>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+                <div class="card-body pt-0">
+                    <div class="tab-content">
+                        <div class="tab-pane preview-tab-pane active" role="tabpanel" aria-labelledby="tab-dom-9e80409e-49e0-4986-9fcb-16b9838d0cff" id="dom-9e80409e-49e0-4986-9fcb-16b9838d0cff">
+                            <div class="" style="background-color: rgba(245, 245, 245, 1.0);">
+                                <table class="table tablestriped overflow-hidden" id="factory-table" style="overflow:auto;">
+                                    <thead>
+                                    <tr class="btn-reveal-trigger" style="background-color: rgba(224, 224, 224, 0.8);" data-id="off">
+                                        <th class="align-middle white-space-nowrap">
+                                            <div class="form-check mb-0">
+                                                <input class="form-check-input" type="checkbox" id="factory_all"/>
+                                            </div>
+                                        </th>
+                                        <th scope="col" style="width: 90px;">코드</th>
+                                        <th scope="col" style="width: 130px;">공장명</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody id="factory_start" data-id="0">
+                                    {% for fac in factory %}
+                                        <tr class="btn-reveal-trigger">
+                                            <td hidden>{{ fac.id }}</td>
+                                            <td class="align-middle white-space-nowrap" style="padding-left: 1.25rem;" onclick="">
+                                                <div class="form-check mb-0">
+                                                    <input class="form-check-input factoryChk" type="checkbox" id="checkbox-{{ fac.id }}" name="factory"/>
+                                                </div>
+                                            </td>
+                                            <td>{{ fac.code }}</td>
+                                            <td>{{ fac.name }}</td>
+                                        </tr>
+                                    {% empty %}
+                                        <tr class="btn-reveal-trigger" data-id="off">
+                                            <td colspan="3" style="text-align: center;" class="deleteone">등록된 정보가 없습니다</td>
+                                        </tr>
+                                    {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="card mb-3 group-table">
+                <div class="card-header">
+                    <div class="row flex-between-end">
+                        <div class="col-auto flex-lg-grow-1 flex-lg-basis-0 align-self-center" style="overflow: hidden;">
+                            <h5 class="mb-0" data-anchor="data-anchor" style="display: inline-block; float: left;">본부</h5>
+                            <div class="btn-div" style="float: left;">
+                                <button type="button" class="btn-sm btn-falcon-primary" data-id="hq" onclick="insertion(this.dataset.id);">+ 추가</button>
+                                <button type="button" class="btn-sm btn-falcon-primary" data-id="hq" onclick="formChange(this.dataset.id);">수정</button>
+                                <button type="button" class="btn-sm btn-falcon-default" data-id="hq" id="hq_save" onclick="insertSave(this.dataset.id);">저장</button>
+                            </div>
+                            <div class="btn-div" style="float: right;">
+                                <button type="button" class="btn-sm btn-falcon-danger" data-id="hq" onclick="deleteBtn(this.dataset.id);">x 삭제</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body pt-0">
+                    <div class="tab-content">
+                        <div class="tab-pane preview-tab-pane active" role="tabpanel" aria-labelledby="tab-dom-9e80409e-49e0-4986-9fcb-16b9838d0cff" id="dom-9e80409e-49e0-4986-9fcb-16b9838d0cff">
+                            <div class="" style="background-color: rgba(245, 245, 245, 1.0);">
+                                <table class="table tablestriped overflow-hidden" id="hq-table">
+                                    <thead>
+                                    <tr class="btn-reveal-trigger" style="background-color: rgba(224, 224, 224, 0.8);" data-id="off">
+                                        <th class="align-middle white-space-nowrap">
+                                            <div class="form-check mb-0">
+                                                <input class="form-check-input" type="checkbox" id="hq_all"/>
+                                            </div>
+                                        </th>
+                                        <th scope="col" style="width: 90px;">코드</th>
+                                        <th scope="col" style="width: 130px;">본부명</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody id="hq_start" data-id="0">
+                                    <tr class="btn-reveal-trigger" data-id="off">
+                                        <td colspan="3" style="text-align: center;" class="deleteone">등록된 정보가 없습니다</td>
+                                    </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+    </div>
+        <div class="col-lg-4">
+            <div class="card mb-3 group-table">
+                <div class="card-header">
+                    <div class="row flex-between-end">
+                        <div class="col-auto flex-lg-grow-1 flex-lg-basis-0 align-self-center" style="overflow: hidden;">
+                            <h5 class="mb-0" data-anchor="data-anchor" style="display: inline-block; float: left;">팀</h5>
+                            <div class="btn-div" style="float: left;">
+                                <button type="button" class="btn-sm btn-falcon-primary" data-id="depart" onclick="insertion(this.dataset.id);">+ 추가</button>
+                                <button type="button" class="btn-sm btn-falcon-primary" data-id="depart" onclick="formChange(this.dataset.id);">수정</button>
+                                <button type="button" class="btn-sm btn-falcon-default" data-id="depart" id="depart_save" onclick="insertSave(this.dataset.id);">저장</button>
+                            </div>
+                            <div class="btn-div" style="float: right;">
+                                <button type="button" class="btn-sm btn-falcon-danger" data-id="depart" onclick="deleteBtn(this.dataset.id);">x 삭제</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body pt-0">
+                    <div class="tab-content">
+                        <div class="tab-pane preview-tab-pane active" role="tabpanel" aria-labelledby="tab-dom-9e80409e-49e0-4986-9fcb-16b9838d0cff" id="dom-9e80409e-49e0-4986-9fcb-16b9838d0cff">
+                            <div class="" style="background-color: rgba(245, 245, 245, 1.0);">
+                                <table class="table tablestriped overflow-hidden" id="depart-table">
+                                    <thead>
+                                    <tr class="btn-reveal-trigger" style="background-color: rgba(224, 224, 224, 0.8);" data-id="off">
+                                        <th class="align-middle white-space-nowrap">
+                                            <div class="form-check mb-0">
+                                                <input class="form-check-input" type="checkbox" id="depart_all"/>
+                                            </div>
+                                        </th>
+                                        <th scope="col" style="width: 90px;">코드</th>
+                                        <th scope="col" style="width: 130px;">팀명</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody id="depart_start" data-id="0">
+                                    <tr class="btn-reveal-trigger" data-id="off">
+                                        <td colspan="3" style="text-align: center;" class="deleteone">등록된 정보가 없습니다</td>
+                                    </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row g-3 mb-3">
+        <div class="col-lg-12">
+            <div class="card mb-3">
+                <div class="card-header">
+                    <div class="row flex-between-end">
+                        <div class="col-auto flex-lg-grow-1 flex-lg-basis-0 align-self-center" style="overflow: hidden;">
+                            <h5 class="mb-0" data-anchor="data-anchor" style="display: inline-block; float: left;">팀원</h5>
+                            <div class="btn-div" style="float: left;">
+                                <button type="button" class="btn-sm btn-falcon-primary" data-id="person" onclick="insertion(this.dataset.id);">+ 추가</button>
+                                <button type="button" class="btn-sm btn-falcon-primary" data-id="person" onclick="formChange(this.dataset.id);">수정</button>
+                                <button type="button" class="btn-sm btn-falcon-default" data-id="person" id="person_save" onclick="personSave();">저장</button>
+                            </div>
+                            <div class="btn-div" style="float: right;">
+                                <button type="button" class="btn-sm btn-falcon-danger" data-id="person" onclick="deleteBtn(this.dataset.id);">x 삭제</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body pt-0">
+                    <div class="tab-content">
+                        <div class="tab-pane preview-tab-pane active" role="tabpanel" aria-labelledby="tab-dom-9e80409e-49e0-4986-9fcb-16b9838d0cff" id="dom-9e80409e-49e0-4986-9fcb-16b9838d0cff">
+                            <div class="" style="background-color: rgba(245, 245, 245, 1.0);">
+                                <table class="table tablestriped overflow-hidden" id="person-table">
+                                    <thead>
+                                    <tr class="btn-reveal-trigger" style="background-color: rgba(224, 224, 224, 0.8);">
+                                        <th class="align-middle white-space-nowrap">
+                                            <div class="form-check mb-0">
+                                                <input class="form-check-input" type="checkbox" id="person_all"/>
+                                            </div>
+                                        </th>
+                                        <th style="width: 150px;">사번</th>
+                                        <th style="width: 150px;">이름</th>
+                                        <th style="width: 150px;">이메일</th>
+                                        <th style="width: 150px;">연락처</th>
+                                        <th style="width: 150px;">권한</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody id="person_start" data-id="0">
+                                    <tr class="btn-reveal-trigger">
+                                        <td colspan="6" style="text-align: center;" class="deleteone">등록된 정보가 없습니다</td>
+                                    </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+{% endblock %}
+
+<!-- Specific Page JS goes HERE  -->
+{% block javascripts %}
+    {{ block.super }}
+    <script src="{% static 'jsmeta/masterdata/script_group.js' %}"></script>
+    <script>
+        $(document).on('click', '#factory-table tr', async function(e) {
+            if($(e.target).is('input:checkbox')) return false;
+            let tr = $(this);
+            if (tr.data('id') === 'off') return false;
+            let td = tr.children();
+            if (tr.hasClass('table-active')) {
+                let list = {"list":[]};
+                tr.removeClass('table-active');
+                tableClear('hq');
+                let addstr1 = makeRow('factory', list);
+                addRow('factory', addstr1);
+                tableClear('depart');
+                let addstr2 = makeRow('hq', list);
+                addRow('hq', addstr2);
+                tableClear('person');
+                let addstr3 = makeRow('depart', list);
+                addRow('depart', addstr3);
+                return false;
+            }
+            let allTr = document.querySelectorAll(`#factory-table tr`);
+            for (let i = 0; i < allTr.length; i++) {
+                allTr[i].classList.remove('table-active');
+            }
+            tr.toggleClass('table-active');
+            let id = td.eq(0).text();
+            let flag = 'factory';
+            const list = await sqlAjax(flag, id);
+            let addstr = makeRow(flag, list);
+            tableClear('hq');
+            addRow(flag, addstr);
+            tableClear('depart');
+            let list1 = {"list":[]};
+            let addstr2 = makeRow('hq', list1);
+            addRow('hq', addstr2);
+            tableClear('person');
+            let addstr3 = makeRow('depart', list1);
+            addRow('depart', addstr3);
+            document.getElementById(`hq_start`).dataset.id = id;
+        });
+        $(document).on('click', '#hq-table tr', async function(e) {
+            if($(e.target).is('input:checkbox')) return false;
+            let tr = $(this);
+            if (tr.data('id') === 'off') return false;
+            let td = tr.children();
+            if (tr.hasClass('table-active')) {
+                let list = {"list":[]};
+                tr.removeClass('table-active');
+                tableClear('depart');
+                let addstr1 = makeRow('hq', list);
+                addRow('hq', addstr1);
+                tableClear('person');
+                let addstr2 = makeRow('depart', list);
+                addRow('depart', addstr2);
+                return false;
+            }
+            let allTr = document.querySelectorAll(`#hq-table tr`);
+            for (let i = 0; i < allTr.length; i++) {
+                allTr[i].classList.remove('table-active');
+            }
+            tr.toggleClass('table-active');
+            let id = td.eq(0).text();
+            let flag = 'hq';
+            const list = await sqlAjax(flag, id);
+            let addstr = makeRow(flag, list);
+            tableClear('depart');
+            addRow(flag, addstr);
+            tableClear('person');
+            let list1 = {"list":[]};
+            let addstr2 = makeRow('depart', list1);
+            addRow('depart', addstr2);
+            document.getElementById(`depart_start`).dataset.id = id;
+        });
+        $(document).on('click', '#depart-table tr', async function(e) {
+            if($(e.target).is('input:checkbox')) return false;
+            let tr = $(this);
+            if (tr.data('id') === 'off') return false;
+            let td = tr.children();
+            if (tr.hasClass('table-active')) {
+                let list = {"list":[]};
+                tr.removeClass('table-active');
+                tableClear('person');
+                let addstr2 = makeRow('depart', list);
+                addRow('depart', addstr2);
+                return false;
+            }
+            let allTr = document.querySelectorAll(`#depart-table tr`);
+            for (let i = 0; i < allTr.length; i++) {
+                allTr[i].classList.remove('table-active');
+            }
+            tr.toggleClass('table-active');
+            let id = td.eq(0).text();
+            let flag = 'depart';
+            const list = await sqlAjax(flag, id);
+            let addstr = makeRow(flag, list);
+            tableClear('person');
+            addRow(flag, addstr);
+            document.getElementById(`person_start`).dataset.id = id;
+        });
+
+    </script>
+{% endblock javascripts %}

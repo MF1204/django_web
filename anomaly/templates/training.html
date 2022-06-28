@@ -1,0 +1,296 @@
+{% extends 'layouts/base.html' %}
+{% load static %}
+{% block title %}training{% endblock %}
+<!-- Specific Page CSS goes HERE  -->
+{% block stylesheets %}
+    {{ block.super }}
+    <link href="{% static '/assets/css/training.css' %}" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.2.1/themes/default/style.min.css" />
+{% endblock stylesheets %}
+
+{% block content %}
+<main class="main" id="top">
+    <div class="container-fluid">
+        <!--        좌측 상단 데이터 업로드 card -->
+        <div class="row g-0 topSetting h-100">
+            <div class="col-lg-6 mb-3 pe-md-2 dataSetting">
+                <div class="card">
+                    <div class="card-header row pb-0 ">
+                        <h6 class="col-8">Training</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-8 row">
+                                <label class="col-4 form-label" for="name_traindata">name</label>
+                                <div class="col-8">
+                                    <input class="input-box" id="name_traindata" type="text" value="" readonly>
+                                </div>
+{#                                <button type="button" class="btn col btn-falcon-primary btn-sm" onclick="executeMonitoring();">#}
+{#                                    <span class="button__text" >graph</span>#}
+{#                                </button>#}
+                            </div>
+                            <div class="form-group mb-2 col-4">
+                                <button type="button" class="btn col btn-falcon-default btn-sm mb-2" id="select-btn" data-bs-toggle="modal" data-bs-target="#trainDataModal">
+                                    <span class="button__text">Select data</span>
+                                </button>
+                                <button type="button" class="btn col btn-falcon-primary btn-sm loaded" id="trainstart-btn" onclick="">
+                                    <span class="button__text" >Start</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+            <div class="col-lg-6 mb-3 pe-md-2 thresholdSetting">
+                <div class="card">
+                    <div class="card-header row pb-0">
+                        <h6 class="col-6">Sensor Info</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-4 row">
+                                <div class="audience-tab-item p-2 pe-4">
+                                    <h6 class="text-800 text-nowrap">Threshhold</h6>
+                                    <h3 class="text-800" id="currentThreshhold"></h3>
+                                </div>
+                            </div>
+                            <div class="col-4 row">
+                                 <div class="audience-tab-item p-2 pe-4">
+                                    <h6 class="text-800 text-nowrap">Sensor</h6>
+                                    <h3 class="text-800" id="sensorNum"></h3>
+                                </div>
+                            </div>
+                            <div class="col-4" style="text-align: center;">
+                                <label id="trn_1"></label>
+                                <button class="btn-falcon-default" id="sensorUpBtn" onclick="sensorDownBtn();"><</button>
+                                <button class="btn-falcon-default" id="sensorDownBtn" onclick="sensorUpBtn();">></button>
+                            </div>
+{#                            <div class="col-6">#}
+{#                                <label class="col-4 form-label" for="adjustThreshold">변경값</label>#}
+{#                                <div class="col-8">#}
+{#                                    <input class="input-box" id="adjustThreshold" type="text" value="" readonly>#}
+{#                                </div>#}
+{#                            </div>#}
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!------------------ Modal ---------------------->
+        <div class="modal fade" id="trainDataModal" tabindex="-1" aria-labelledby="trainDataModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="trainDataModalLabel">Select Traindata</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        {#                            Table in modal-1                              #}
+                        <div id="jstree_div">
+                        </div>
+                        {#                                모달 하단 card                #}
+                        <div class="card h-30 p-0" id="selected">
+                            <div class="card-body" >
+                                <div class="card-text">Selected data</div>
+                                <div class="card-text" id="selectedTrainDisp" style="font-weight: bold;"></div>
+                                <input type="hidden" id="selectedProcess" value="Null">
+                                <input type="hidden" id="selectedEquipment" value="Null">
+                                <input type="hidden" id="selectedChamber" value="Null">
+                                <input type="hidden" id="selectedRecipe" value="Null">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">확인</button>
+                        {# <button type="button" class="btn btn-primary" ">Save changes</button>#}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {#            end modal            #}
+
+        <!------------------ Progress ---------------------->
+        <div class="modal fade" id="progressbarmodal" tabindex="-1" aria-labelledby="progressbarLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="lottie mx-auto" style="width: 300px; height: 300px;" data-options='{"path":"{% static 'assets/img/animated-icons/96285-loading.json' %}"}'>
+                    <div id="progress_bar">
+                        <p id="load_percentage" style="color: white; font-size: 30px;">0%</p>
+                    </div>
+                </div>
+                <input type="hidden" id="trainBase" value="0">
+                <input type="hidden" id="testBase" value="0">
+                <input type="hidden" id="progressTime" value="{{ progressTime }}">
+{#                    <div class="row align-items-center">#}
+{#                    </div>#}
+{#                    <div class="mb-3" style="height:15px">#}
+{#                        <div#}
+{#                                id="progress_bar" class="progress-bar bg-success progress-bar-striped"#}
+{#                                role="progressbar" style="width: 0%" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100"#}
+{#                        >#}
+{#                        </div>#}
+{#                    </div>#}
+            </div>
+        </div>
+        <div class="modal fade" id="complete-modal" tabindex="-1" role="dialog" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered" role="document" style="max-width: 500px">
+                <div class="modal-body p-0">
+                    <div class="alert alert-success border-2 d-flex align-items-center" role="alert">
+                        <div class="bg-success me-3 icon-item"><span class="fas fa-check-circle text-white fs-3"></span></div>
+                        <p class="mb-0 flex-1">학습 완료</p>
+                        <button class="btn-close" type="button" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="modal fade" id="fail-modal" tabindex="-1" role="dialog" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered" role="document" style="max-width: 500px">
+                <div class="modal-body p-0">
+                    <div class="alert alert-warning border-2 d-flex align-items-center" role="alert">
+                        <div class="bg-warning me-3 icon-item"><span class="fas fa-exclamation-circle text-white fs-3"></span></div>
+                        <p class="mb-0 flex-1">학습 실패</p>
+                        <button class="btn-close" type="button" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {#            end modal            #}
+
+        <div class="row g-0 h-100">
+            <div class="col-lg-6 mb-3 pe-md-2">
+                <div class="card ecommerce-card-min-wieth">
+                    <div class="card-header bg-soft-secondary text-900">
+                        <div class="row align-items-center">
+                            <div class="col"><h6 class="m-1">Training Status</h6></div>
+                        </div>
+                    </div>
+                    <div class="card-body justify-content-end canvas1st">
+                        <div class="chart-title">
+                            <p class="ptitle" id="chart1Title"></p>
+                        </div>
+                        <div class="canvas2nd">
+                            <div class="canvas3rd">
+                                <canvas id="canvas1" class="canvasBody" width="20000" height="350"></canvas>
+                            </div>
+                        </div>
+                        <canvas id="chart1Axis" width="32" height="350"></canvas>
+                        <div class="chart-title-legend">
+                            <div class="chart-legend" id="legend-container1"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-6 mb-3 pe-md-2">
+                <div class="card ecommerce-card-min-wieth">
+                    <div class="card-header bg-soft-secondary text-900">
+                        <div class="row align-items-center">
+                            <div class="col"><h6 class="m-1">Training Anomaly Score</h6></div>
+                        </div>
+                    </div>
+                    <div class="card-body justify-content-end canvas1st">
+                        <div class="chart-title">
+                            <p class="ptitle" id="chart2Title"></p>
+                        </div>
+                        <div class="canvas2nd">
+                            <div class="canvas3rd">
+                                <canvas id="canvas2" class="canvasBody" width="800" height="350"></canvas>
+                            </div>
+                        </div>
+                        <canvas id="chart2Axis" width="50" height="350"></canvas>
+                        <div class="chart-title-legend">
+                            <div class="chart-legend" id="legend-container2"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-6 mb-3 pe-md-2">
+                <div class="card ecommerce-card-min-wieth">
+                    <div class="card-header bg-soft-secondary text-900">
+                        <div class="row align-items-center">
+                            <div class="col"><h6 class="m-1">Test Result</h6></div>
+                        </div>
+                    </div>
+                    <div class="card-body justify-content-end canvas1st">
+                        <div class="chart-title">
+                            <p class="ptitle" id="chart3Title"></p>
+                        </div>
+                        <div class="canvas2nd">
+                            <div class="canvas3rd">
+                                <canvas id="canvas3" class="canvasBody" width="20000" height="350"></canvas>
+                            </div>
+                        </div>
+                        <canvas id="chart3Axis" width="32" height="350"></canvas>
+                        <div class="chart-title-legend">
+                            <div class="chart-legend" id="legend-container3"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-6 mb-3 pe-md-2">
+                <div class="card ecommerce-card-min-wieth">
+                    <div class="card-header bg-soft-secondary text-900">
+                        <div class="row align-items-center">
+                            <div class="col"><h6 class="m-1">Test Anomaly Score</h6></div>
+                        </div>
+                    </div>
+                    <div class="card-body justify-content-end canvas1st">
+                        <div class="chart-title">
+                            <p class="ptitle" id="chart4Title"></p>
+                        </div>
+                        <div class="canvas2nd">
+                            <div class="canvas3rd">
+                                <canvas id="canvas4" class="canvasBody" width="800" height="350"></canvas>
+                            </div>
+                        </div>
+                        <canvas id="chart4Axis" width="50" height="350"></canvas>
+                        <div class="chart-title-legend">
+                            <div class="chart-legend" id="legend-container4"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-0 h-100" style="padding-right: 0.5rem">
+            <div class="card">
+                <div class="card-header d-flex flex-between-center bg-300 py-3">
+                    <h6 class="mb-0">Warning List</h6>
+                </div>
+                <div class="card-body pb-3" style="margin: 0 2em 0 2em">
+                    <div class="row text-center border-sm-bottom pb-2" style="font-weight: 700;">
+                        <div class="col">Date</div>
+                        <div class="col">제품명</div>
+                    </div>
+                    <table id="anomalies_list" style="width:100%; margin-top:1em">
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+{% endblock %}
+
+<!-- Specific Page JS goes HERE  -->
+{% block javascripts %}
+    {{ block.super }}
+<!-- jsTree -->
+    <script src="{% static '/vendors/jstree/src/jstree.js' %}"></script>
+    <script src="{% static '/vendors/list.js/list.min.js' %}"></script>
+    <script src="{% static '/jsmeta/anomaly/training.js' %}"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.1/chart.min.js"></script>
+    <script>
+        let treedata= "{{ treedata }}";
+        treedata = JSON.parse(treedata.replace(/(&quot\;)/g,"\""));
+        $('#jstree_div').jstree({
+            "plugins" : [ "wholerow", "changed" ],
+            'core' : {
+                'data' : treedata
+            }
+        });
+    </script>
+
+
+{% endblock javascripts %}

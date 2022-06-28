@@ -1,0 +1,206 @@
+{% extends 'layouts/base.html' %}
+{% load static %}
+{% load humanize %}
+
+<!-- Specific Page CSS goes HERE  -->
+{% block stylesheets %}
+    {{ block.super }}
+{% endblock stylesheets %}
+
+{% block content %}
+<div class="container" data-layout="container">
+  <div class="row g-3">
+    <div class="col-xl-4">
+      <div class="card mb-3">
+          <div class="card-body position-relative">
+            <h3>장비</h3>
+            <div class="form-floating">
+              <select class="form-select" id="equipmentSelect" aria-label="Floating label select example" onchange="location.href='?equip_name='+ this.value">
+                {% if rsEquip %}
+                {% for name in rsEquip %}
+                  {% if equip_name == name %}
+                  <option value="{{name}}" selected>{{name}}</option>
+                  {% else %}
+                  <option value="{{name}}">{{name}}</option>
+                  {% endif %}
+                {% endfor %}
+                {% endif %}
+              </select>
+              <label for="equipmentSelect">장비</label>
+          </div>
+          <br>
+          <h3>Chamber</h3>
+            <div class="form-floating">
+              <select class="form-select" id="chamberSelect" aria-label="Floating label select example"
+                      onchange="location.href='?equip_name={{equip_name}}&chamber_name='+ this.value">
+                {% if rsChamber %}
+                {% for name in rsChamber %}
+                  {% if chamber_name == name %}
+                  <option value="{{name}}" selected>{{name}}</option>
+                  {% else %}
+                  <option value="{{name}}">{{name}}</option>
+                  {% endif %}
+                {% endfor %}
+                {% endif %}
+              </select>
+              <label for="chamberSelect">Chamber</label>
+          </div>
+        </div>
+      </div>
+      <div class="card mb-3">
+        <div class="card-body position-relative">
+          <div class="row">
+            <div class="col-8">
+          <h3>Recipe</h3>
+            <div class="form-floating">
+              <select class="form-select" id="recipeSelect" aria-label="Floating label select example"
+                      onchange="location.href='?equip_name={{equip_name}}&chamber_name={{chamber_name}}&recipe_name='+this.value">
+                {% if rsRecipe %}
+                {% for name in rsRecipe %}
+                  {% if recipe_name == name %}
+                  <option value="{{name}}" selected>{{name}}</option>
+                  {% else %}
+                  <option value="{{name}}">{{name}}</option>
+                  {% endif %}
+                {% endfor %}
+                {% endif %}
+              </select>
+              <label for="recipeSelect">Recipe</label>
+            </div>
+          </div>
+          <div class="col-4">
+            <h3>개정</h3>
+              <div class="form-floating">
+                <select class="form-select" id="revisionSelect" aria-label="Floating label select example"
+                        onchange="location.href='?equip_name={{equip_name}}&chamber_name={{chamber_name}}&recipe_name={{recipe_name}}&revision_no='+this.value">
+                  {% if rsRevision %}
+                  {% for revision in rsRevision %}
+                    {% if revision == revision_no %}
+                    <option value="{{revision}}" selected>{{revision}}</option>
+                    {% else %}
+                    <option value="{{revision}}">{{revision}}</option>
+                    {% endif %}
+                  {% endfor %}
+                  {% endif %}
+                </select>
+                <label for="revisionSelect">Revision</label>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-xl-8">
+      <div class="card mb-3">
+        <div class="bg-holder d-none d-lg-block bg-card" style="background-image:url({% static 'assets/img/icons/spot-illustrations/corner-4.png' %});">
+        </div>
+        <!--/.bg-holder-->
+        <div class="card-body position-relative">
+          <div class="row">
+            <div class="col-lg-8">
+              <h3>Data Upload</h3>
+            </div>
+          </div>
+          <form id="UploadForm" method="post" action="/uploaddata">
+            {% csrf_token %}
+            <input type="hidden" name="equip_name" value="{{equip_name}}"/>
+            <input type="hidden" name="chamber_name" value="{{chamber_name}}"/>
+            <input type="hidden" name="recipe_name" value="{{recipe_name}}"/>
+            <input type="hidden" name="revision_no" value="{{revision_no}}"/>
+            <input type="hidden" name="data_cnt" value="{{data_cnt}}"/>
+
+          <div class="row">
+            <div class="col-lg-2">
+              <div class="form-check form-check-inline">
+                {% if purpose == 'TRN' %}
+                <input class="form-check-input" id="inlineRadio1" type="radio" name="inlineRadioOptions" value="train_data" checked=""
+                onchange="location.href='?equip_name={{equip_name}}&chamber_name={{chamber_name}}&recipe_name={{recipe_name}}&revision_no={{revision_no}}&type='+this.value"/>
+                {% else %}
+                <input class="form-check-input" id="inlineRadio1" type="radio" name="inlineRadioOptions" value="train_data"
+                onchange="location.href='?equip_name={{equip_name}}&chamber_name={{chamber_name}}&recipe_name={{recipe_name}}&revision_no={{revision_no}}&type='+this.value"/>
+                {% endif %}
+                <label class="form-check-label" for="inlineRadio1">Train</label>
+              </div>
+              <div class="form-check form-check-inline">
+                {% if purpose == 'TST' %}
+                <input class="form-check-input" id="inlineRadio2" type="radio" name="inlineRadioOptions" value="test_data" checked=""
+                onchange="location.href='?equip_name={{equip_name}}&chamber_name={{chamber_name}}&recipe_name={{recipe_name}}&revision_no={{revision_no}}&type='+this.value"/>
+                {% else %}
+                <input class="form-check-input" id="inlineRadio2" type="radio" name="inlineRadioOptions" value="test_data"
+                onchange="location.href='?equip_name={{equip_name}}&chamber_name={{chamber_name}}&recipe_name={{recipe_name}}&revision_no={{revision_no}}&type='+this.value"/>
+                {% endif %}
+                <label class="form-check-label" for="inlineRadio2">Test</label>
+              </div>
+            </div>
+            <div class='col-lg-8'>
+                <div class="fallback">
+                  <input class="form-control" id="file" name="file" type="file" multiple="multiple"/>
+                </div>
+            </div>
+            <div class='col-lg-2'>
+              <button class="btn btn-falcon-default btn-sm mt-2" type="button" onclick="upload()">등록</button>
+            </div>
+          </div>
+        </form>
+        </div>
+    </div>
+
+      <div class="card-body py-0">
+        <div class="tab-content">
+          <div class="tab-pane preview-tab-pane active" role="tabpanel" aria-labelledby="tab-dom-a9712f65-720e-4f64-8ced-b50bb29a7a97"
+               id="dom-a9712f65-720e-4f64-8ced-b50bb29a7a97">
+            <div class="card mx-ncard my-ncard shadow-none">
+              <div class="card-body">
+                <div class="table-responsive scrollbar">
+                  <table class="table mb-0">
+                      <thead class="text-black bg-200">
+                      <tr>
+                          <th class="align-middle white-space-nowrap">
+                              <div class="form-check mb-0">
+                                  <input class="form-check-input" type="checkbox"
+                                         data-bulk-select='{"body":"bulk-select-body","actions":"bulk-select-actions","replacedElement":"bulk-select-replace-element"}' />
+                              </div>
+                          </th>
+                          <th class="align-middle">Purpose</th>
+                          <th class="align-middle">Name</th>
+                          <th class="align-middle">Path</th>
+                          <th class="align-middle">Sample 수</th>
+                          <th class="align-middle">Size(bytes)</th>
+                      </tr>
+                      </thead>
+                    <tbody id="bulk-select-body">
+                    {% if rsDataset %}
+                    {% for i in rsDataset %}
+                      <tr>
+                        <td class="align-middle white-space-nowrap">
+                          <div class="form-check mb-0">
+                            <input class="form-check-input" type="checkbox" id="checkbox-1" data-bulk-select-row="data-bulk-select-row" />
+                          </div>
+                        </td>
+                        <td class="align-middle">{{ i.purpose }}</td>
+                        <td class="align-middle">{{ i.data_name }}</td>
+                        <td class="align-middle">{{ i.data_static_path}}</td>
+                        <td class="align-middle">{{ i.data_cnt }}</td>
+                        <td class="align-middle">{{ i.data_size | intcomma }}</td>
+                      </tr>
+                    {% endfor %}
+                    {% endif %}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+{% endblock content %}
+
+<!-- Specific Page JS goes HERE  -->
+{% block javascripts %}
+<script src="{% static 'jsmeta/uploaddata/script_uploaddata.js' %}"></script>
+{% endblock javascripts %}
